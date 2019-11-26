@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -28,6 +28,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Drawing.Common" Version="4.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="linqpad-samples\**" Pack="True" PackagePath="linqpad-samples" />
   </ItemGroup>
 
 </Project>
