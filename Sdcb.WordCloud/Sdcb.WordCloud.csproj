@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Company>sdcb</Company>
+    <Authors>sdcb</Authors>
+    <Description>Generate WordCloud image from .NET/.NET Core</Description>
+  </PropertyGroup>
+
+</Project>
