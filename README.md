@@ -4,7 +4,7 @@ Generate WordCloud image from .NET/.NET Core
 This project is initialy ported from https://archive.codeplex.com/?p=wordcloud
 
 # Example
-![](.\assets\demo.png)
+![](./assets/demo.png)
 
 # Usage
 ```csharp
@@ -1113,5 +1113,5 @@ string GetText() => @"459	cloud
         2	whole
         2	wildfires
         2	yielding
-        2	¨¦tages";
+        2	Â¨Â¦tages";
 ```
