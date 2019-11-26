@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sdcb.WordCloud
+namespace Sdcb.WordClouds
 {
 	internal class IntegralImage
 	{

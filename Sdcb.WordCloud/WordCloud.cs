@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 
-namespace Sdcb.WordCloud
+namespace Sdcb.WordClouds
 {
 	/// <summary>
 	/// Class to draw word clouds.

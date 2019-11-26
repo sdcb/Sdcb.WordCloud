@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-namespace Sdcb.WordCloud
+namespace Sdcb.WordClouds
 {
 	/// <summary>
 	/// Image class for fast manipulation of bitmap data.

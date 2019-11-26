@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Sdcb.WordCloud
+namespace Sdcb.WordClouds
 {
 	internal class OccupancyMap : IntegralImage
 	{
