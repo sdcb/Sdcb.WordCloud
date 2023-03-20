@@ -21,6 +21,7 @@ namespace Sdcb.WordClouds
 			if (posX < 1) posX = 1;
 			if (posY < 1) posY = 1;
 
+			Span<byte> data = image.CreateDataAccessor();
 			for (int i = posY; i < image.Height; ++i)
 			{
 				for (int j = posX; j < image.Width; ++j)
@@ -28,7 +29,7 @@ namespace Sdcb.WordClouds
 					byte pixel = 0;
 					for (int p = 0; p < image.PixelFormatSize; ++p)
 					{
-						pixel |= image.Data[i*image.Stride + j*image.PixelFormatSize + p];
+						pixel |= data[i*image.Stride + j*image.PixelFormatSize + p];
 					}
 					Integral[j, i] = pixel + Integral[j - 1, i] + Integral[j, i - 1] - Integral[j - 1, i - 1];
 				}

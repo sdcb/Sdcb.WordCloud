@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+[assembly: InternalsVisibleTo("Sdcb.WordClouds.Tests")]
 
 namespace Sdcb.WordClouds
 {
@@ -12,33 +14,57 @@ namespace Sdcb.WordClouds
     {
         public FastImage(int width, int height, PixelFormat format)
         {
-            PixelFormatSize = Image.GetPixelFormatSize(format) / 8;
-            Stride = width * PixelFormatSize;
+            Width = width;
+            Height = height;
+            Format = format;
 
-            Data = new byte[Stride * height];
-            Handle = GCHandle.Alloc(Data, GCHandleType.Pinned);
-            IntPtr pData = Marshal.UnsafeAddrOfPinnedArrayElement(Data, 0);
-            Bitmap = new Bitmap(width, height, Stride, format, pData);
+            Pointer = Marshal.AllocHGlobal(AllocatedSize);
+            GC.AddMemoryPressure(AllocatedSize);
         }
 
-        public int Width { get { return Bitmap.Width; } }
+        public int Width { get; }
 
-        public int Height { get { return Bitmap.Height; } }
+        public int Height { get; }
 
-        public int PixelFormatSize { get; set; }
+        public PixelFormat Format { get; }
 
-        public GCHandle Handle { get; set; }
+        public int PixelFormatSize => Image.GetPixelFormatSize(Format) / 8;
 
-        public int Stride { get; set; }
+        public int Stride => Width * PixelFormatSize;
 
-        public byte[] Data { get; set; }
+        public int AllocatedSize => Stride * Height;
 
-        public Bitmap Bitmap { get; set; }
+        public IntPtr Pointer { get; private set; }
+
+        public unsafe Span<byte> CreateDataAccessor()
+        {
+            return new Span<byte>((void*)Pointer, AllocatedSize);
+        }
+
+        public Bitmap CreateBitmap()
+        {
+            return new Bitmap(Width, Height, Stride, Format, Pointer);
+        }
+
+        ~FastImage()
+        {
+            Dispose(false);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (Pointer != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(Pointer);
+                GC.RemoveMemoryPressure(AllocatedSize);
+                Pointer = IntPtr.Zero;
+            }
+        }
 
         public void Dispose()
         {
-            Handle.Free();
-            Bitmap.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

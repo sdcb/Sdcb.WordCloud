@@ -23,8 +23,9 @@ namespace Sdcb.WordClouds
 		public WordCloud(int width, int height, bool useRank = false, Color? fontColor = null, int maxFontSize = -1,
 			int fontStep = 1)
 		{
+			Width = width;
+			Height = height;
 			Map = new OccupancyMap(width, height);
-			Image = new FastImage(width, height, PixelFormat.Format32bppArgb);
 
 			MaxFontSize = maxFontSize < 0 ? height : maxFontSize;
 			FontStep = fontStep;
@@ -45,9 +46,9 @@ namespace Sdcb.WordClouds
 		/// or
 		/// Must have the same number of words as frequencies.
 		/// </exception>
-		public Image Draw(List<string> words, List<int> freqs)
+		public Bitmap Draw(List<string> words, List<int> freqs)
 		{
-			var fontSize = MaxFontSize;
+            int fontSize = MaxFontSize;
 			if (words == null || freqs == null)
 			{
 				throw new ArgumentException("Arguments null.");
@@ -57,7 +58,9 @@ namespace Sdcb.WordClouds
 				throw new ArgumentException("Must have the same number of words as frequencies.");
 			}
 
-			using (var g = Graphics.FromImage(Image.Bitmap))
+			using (FastImage fastImage = new FastImage(Width, Height, PixelFormat.Format32bppArgb))
+			using (Bitmap bitmap = fastImage.CreateBitmap())
+			using (Graphics g = Graphics.FromImage(bitmap))
 			{
 				g.Clear(Color.Transparent);
 				g.TextRenderingHint = TextRenderingHint.AntiAlias;
@@ -67,7 +70,7 @@ namespace Sdcb.WordClouds
 					{
 						fontSize = (int) Math.Min(fontSize, 100*Math.Log10(freqs[i] + 100));
 					}
-					var format = StringFormat.GenericTypographic;
+                    StringFormat format = StringFormat.GenericTypographic;
 					format.FormatFlags &= ~StringFormatFlags.LineLimit;
 
 					int posX, posY;
@@ -84,13 +87,11 @@ namespace Sdcb.WordClouds
 					if (fontSize <= 0) break;
 
 					g.DrawString(words[i], font, new SolidBrush(FontColor), posX, posY, format);
-					Map.Update(Image, posX, posY);
+					Map.Update(fastImage, posX, posY);
 				}
-			}
 
-			var result = Image.Bitmap.Clone();
-			Image.Dispose();
-			return (Image) result;
+				return new Bitmap(bitmap);
+			}
 		}
 
 
@@ -102,7 +103,6 @@ namespace Sdcb.WordClouds
 			get { return m_fontColor ?? GetRandomColor(); }
 			set { m_fontColor = value; }
 		}
-
 
 		private Color? m_fontColor;
 
@@ -120,19 +120,15 @@ namespace Sdcb.WordClouds
 		/// <summary>
 		/// Used to select random colors.
 		/// </summary>
-		private Random Random { get; set; }
+		private Random Random { get; }
+        public int Width { get; }
+        public int Height { get; }
 
 
-		/// <summary>
-		/// Working image.
-		/// </summary>
-		private FastImage Image { get; set; }
-
-
-		/// <summary>
-		/// Keeps track of word positions using integral image.
-		/// </summary>
-		private OccupancyMap Map { get; set; }
+        /// <summary>
+        /// Keeps track of word positions using integral image.
+        /// </summary>
+        private OccupancyMap Map { get; set; }
 
 
 		/// <summary>
