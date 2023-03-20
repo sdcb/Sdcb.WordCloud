@@ -4,6 +4,7 @@
     <TargetFrameworks>netstandard2.0;net6</TargetFrameworks>
     <Company>sdcb</Company>
     <Authors>sdcb</Authors>
+    <Version>1.1</Version>
     <Description>Generate WordCloud image from .NET/.NET Core</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/sdcb/Sdcb.WordCloud</PackageProjectUrl>
@@ -28,7 +29,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
     <PackageReference Include="System.Memory" Version="4.5.5" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 
