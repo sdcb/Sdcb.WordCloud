@@ -1,6 +1,6 @@
 <Query Kind="Statements">
   <NuGetReference>Sdcb.WordCloud</NuGetReference>
-  <Namespace>Sdcb.WordCloud</Namespace>
+  <Namespace>Sdcb.WordClouds</Namespace>
 </Query>
 
 var wc = new WordCloud(1024, 768);
