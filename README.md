@@ -1,8 +1,6 @@
 # Sdcb.WordCloud [![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
 Generate WordCloud image from .NET/.NET Core
 
-This project is initialy ported from https://archive.codeplex.com/?p=wordcloud
-
 # Example
 ![](./assets/demo.png)
 
@@ -1115,3 +1113,5 @@ string GetText() => @"459	cloud
         2	yielding
         2	¨¦tages";
 ```
+
+This project is initialy ported from https://archive.codeplex.com/?p=wordcloud
