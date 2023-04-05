@@ -5,9 +5,11 @@ namespace Sdcb.WordClouds
 {
     internal class OccupancyMap : IntegralImage
     {
-        public OccupancyMap(int width, int height) : base(width, height)
+        private readonly Random _rand;
+
+        public OccupancyMap(int width, int height, Random random) : base(width, height)
         {
-            Rand = new Random();
+            _rand = random;
         }
 
         public bool TryFindUnoccupiedPosition(int sizeX, int sizeY, out int oPosX, out int oPosY)
@@ -15,8 +17,8 @@ namespace Sdcb.WordClouds
             oPosX = -1;
             oPosY = -1;
 
-            int startPosX = Rand.Next(1, Width);
-            int startPosY = Rand.Next(1, Height);
+            int startPosX = _rand.Next(1, Width);
+            int startPosY = _rand.Next(1, Height);
 
             int x, y, dx, dy;
             x = y = dx = 0;
@@ -55,11 +57,5 @@ namespace Sdcb.WordClouds
 
             return false;
         }
-
-        private List<int> XPoses { get; set; }
-
-        private List<int> YPoses { get; set; } 
-
-        private Random Rand { get; set; }
     }
 }

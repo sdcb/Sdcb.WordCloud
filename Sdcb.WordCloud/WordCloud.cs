@@ -20,18 +20,27 @@ namespace Sdcb.WordClouds
         /// <param name="fontColor">Color of the font.</param>
         /// <param name="maxFontSize">Maximum size of the font.</param>
         /// <param name="fontStep">The font step to use.</param>
-        public WordCloud(int width, int height, bool useRank = false, Color? fontColor = null, int maxFontSize = -1,
-            int fontStep = 1)
+        /// <param name="randomSeed">
+        /// <para>The random seed to generate, random if provided null</para>
+        /// <para>Note: same random seed will generate same WordCloud</para>
+        /// </param>
+        public WordCloud(int width, int height, 
+            bool useRank = false, 
+            Color? fontColor = null, 
+            int maxFontSize = -1,
+            int fontStep = 1, 
+            int? randomSeed = null)
         {
             Width = width;
             Height = height;
-            Map = new OccupancyMap(width, height);
+            _random = randomSeed == null ? new Random() : new Random(randomSeed.Value);
+
+            Map = new OccupancyMap(width, height, _random);
 
             MaxFontSize = maxFontSize < 0 ? height : maxFontSize;
             FontStep = fontStep;
             m_fontColor = fontColor;
             UseRank = useRank;
-            Random = new Random();
         }
 
 
@@ -52,7 +61,7 @@ namespace Sdcb.WordClouds
                 throw new ArgumentNullException(nameof(wordFrequencies));
             }
 
-            using (FastImage fastImage = new FastImage(Width, Height, PixelFormat.Format32bppArgb))
+            using (FastImage fastImage = new(Width, Height, PixelFormat.Format32bppArgb))
             using (Bitmap bitmap = fastImage.CreateBitmap())
             using (Graphics g = Graphics.FromImage(bitmap))
             {
@@ -107,14 +116,15 @@ namespace Sdcb.WordClouds
         /// <returns>Color</returns>
         private Color GetRandomColor()
         {
-            return Color.FromArgb(Random.Next(0, 255), Random.Next(0, 255), Random.Next(0, 255));
+            return Color.FromArgb(_random.Next(0, 255), _random.Next(0, 255), _random.Next(0, 255));
         }
 
 
         /// <summary>
         /// Used to select random colors.
         /// </summary>
-        private Random Random { get; }
+        private readonly Random _random;
+
         public int Width { get; }
         public int Height { get; }
 

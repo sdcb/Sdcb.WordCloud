@@ -6,7 +6,7 @@ namespace Sdcb.WordClouds
     {
         public IntegralImage(int width, int height)
         {
-            Integral = new uint[width,height];
+            Integral = new uint[width, height];
             Width = width;
             Height = height;
         }
@@ -29,7 +29,7 @@ namespace Sdcb.WordClouds
                     byte pixel = 0;
                     for (int p = 0; p < image.PixelFormatSize; ++p)
                     {
-                        pixel |= data[i*image.Stride + j*image.PixelFormatSize + p];
+                        pixel |= data[i * image.Stride + j * image.PixelFormatSize + p];
                     }
                     Integral[j, i] = pixel + Integral[j - 1, i] + Integral[j, i - 1] - Integral[j - 1, i - 1];
                 }
