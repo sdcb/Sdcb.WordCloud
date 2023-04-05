@@ -41,6 +41,12 @@ namespace Sdcb.WordClouds
             return new Span<byte>((void*)Pointer, AllocatedSize);
         }
 
+        public unsafe void Reset()
+        {
+            Span<byte> data = CreateDataAccessor();
+            data.Fill(0);
+        }
+
         public Bitmap CreateBitmap()
         {
             return new Bitmap(Width, Height, Stride, Format, Pointer);
