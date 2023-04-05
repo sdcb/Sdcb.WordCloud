@@ -17,6 +17,9 @@ namespace Sdcb.WordClouds
             Width = width;
             Height = height;
             Format = format;
+            PixelFormatSize = Image.GetPixelFormatSize(Format) / 8;
+            Stride = Width * PixelFormatSize;
+            AllocatedSize = Stride * Height;
 
             Pointer = Marshal.AllocHGlobal(AllocatedSize);
             GC.AddMemoryPressure(AllocatedSize);
@@ -28,11 +31,11 @@ namespace Sdcb.WordClouds
 
         public PixelFormat Format { get; }
 
-        public int PixelFormatSize => Image.GetPixelFormatSize(Format) / 8;
+        public int PixelFormatSize { get; }
 
-        public int Stride => Width * PixelFormatSize;
+        public int Stride { get; }
 
-        public int AllocatedSize => Stride * Height;
+        public int AllocatedSize { get; }
 
         public IntPtr Pointer { get; private set; }
 

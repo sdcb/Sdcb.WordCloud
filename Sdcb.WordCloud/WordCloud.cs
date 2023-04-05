@@ -24,11 +24,11 @@ namespace Sdcb.WordClouds
         /// <para>The random seed to generate, random if provided null</para>
         /// <para>Note: same random seed will generate same WordCloud</para>
         /// </param>
-        public WordCloud(int width, int height, 
-            bool useRank = false, 
-            Color? fontColor = null, 
+        public WordCloud(int width, int height,
+            bool useRank = false,
+            Color? fontColor = null,
             int maxFontSize = -1,
-            int fontStep = 1, 
+            int fontStep = 1,
             int? randomSeed = null)
         {
             Width = width;
@@ -53,12 +53,23 @@ namespace Sdcb.WordClouds
         /// or
         /// Must have the same number of words as frequencies.
         /// </exception>
-        public Bitmap Draw(IEnumerable<WordFrequency> wordFrequencies)
+        public Bitmap Draw(IEnumerable<WordFrequency> wordFrequencies, Bitmap? mask = null, byte maskThreshold = 0xCF)
         {
             int fontSize = MaxFontSize;
             if (wordFrequencies == null)
             {
                 throw new ArgumentNullException(nameof(wordFrequencies));
+            }
+
+            Map.Reset();
+            if (mask != null)
+            {
+                if (mask.Width != Width || mask.Height != Height)
+                {
+                    throw new ArgumentException("Mask must have the same size as the word cloud");
+                }
+
+                Map.UpdateBitmapMask(mask, maskThreshold);
             }
 
             using (FastImage fastImage = new(Width, Height, PixelFormat.Format32bppArgb))
@@ -71,7 +82,7 @@ namespace Sdcb.WordClouds
                 {
                     if (!UseRank)
                     {
-                        fontSize = (int) Math.Min(fontSize, 100*Math.Log10(wordFreq.Frequency + 100));
+                        fontSize = (int)Math.Min(fontSize, 100 * Math.Log10(wordFreq.Frequency + 100));
                     }
                     StringFormat format = StringFormat.GenericTypographic;
                     format.FormatFlags &= ~StringFormatFlags.LineLimit;
@@ -84,7 +95,7 @@ namespace Sdcb.WordClouds
                     {
                         font = new Font(FontFamily.GenericSansSerif, fontSize, GraphicsUnit.Pixel);
                         SizeF size = g.MeasureString(wordFreq.Word, font, new PointF(0, 0), format);
-                        foundPosition = Map.TryFindUnoccupiedPosition((int) size.Width, (int) size.Height, out posX, out posY);
+                        foundPosition = Map.TryFindUnoccupiedPosition((int)size.Width, (int)size.Height, out posX, out posY);
                         if (!foundPosition) fontSize -= FontStep;
                     } while (fontSize > 0 && !foundPosition);
                     if (fontSize <= 0) break;

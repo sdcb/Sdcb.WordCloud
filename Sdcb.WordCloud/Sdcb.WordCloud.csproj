@@ -16,6 +16,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>11</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

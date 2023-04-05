@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace Sdcb.WordClouds
 {
@@ -22,9 +24,41 @@ namespace Sdcb.WordClouds
             }
         }
 
-        public void Update(FastImage image)
+        public unsafe void UpdateBitmapMask(Bitmap image, byte maskThreshold)
         {
-            Update(image, 1, 1);
+            if (image == null)
+                throw new ArgumentNullException(nameof(image));
+
+            if (image.Width != Width || image.Height != Height)
+                throw new ArgumentException("Image size does not match integral image size.", nameof(image));
+
+            BitmapData dataRect = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, image.PixelFormat);
+            try
+            {
+                int pixelFormatSize = dataRect.Stride / dataRect.Width;
+                ReadOnlySpan<byte> data = new(dataRect.Scan0.ToPointer(), dataRect.Stride * dataRect.Height);
+                for (int i = 1; i < dataRect.Height; ++i)
+                {
+                    for (int j = 1; j < dataRect.Width; ++j)
+                    {
+                        bool containsWordCloud = true;
+                        for (int p = 0; p < pixelFormatSize; ++p)
+                        {
+                            if (data[i * dataRect.Stride + j * pixelFormatSize + p] < maskThreshold)
+                            {
+                                containsWordCloud = false;
+                                continue;
+                            }
+                        }
+                        byte pixel = containsWordCloud ? (byte)255 : (byte)0;
+                        Integral[j, i] = pixel + Integral[j - 1, i] + Integral[j, i - 1] - Integral[j - 1, i - 1];
+                    }
+                }
+            }
+            finally
+            {
+                image.UnlockBits(dataRect);
+            }
         }
 
         public void Update(FastImage image, int posX, int posY)
