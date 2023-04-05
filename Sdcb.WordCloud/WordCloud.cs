@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
+using System.Linq;
 
 namespace Sdcb.WordClouds
 {
@@ -77,8 +79,21 @@ namespace Sdcb.WordClouds
             using (Bitmap resultBitmap = destination.CreateBitmap())
             using (Graphics g = Graphics.FromImage(resultBitmap))
             {
-                g.Clear(Color.Black);
+                //if (mask != null)
+                //{
+                //    if (mask.HorizontalResolution != resultBitmap.HorizontalResolution || mask.VerticalResolution != resultBitmap.VerticalResolution)
+                //    {
+                //        mask.SetResolution(resultBitmap.HorizontalResolution, resultBitmap.VerticalResolution);
+                //    }
+                //    g.DrawImage(mask, 0, 0);
+                //}
+                g.Clear(Color.Transparent);
+                
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
+                int i = 0;
+                Map.SaveDebug($"{i}.txt");
+                Map.SaveDebugImage($"{i}.png");
+                Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
                 foreach (WordFrequency wordFreq in wordFrequencies)
                 {
                     if (!UseRank)
@@ -92,18 +107,41 @@ namespace Sdcb.WordClouds
                     bool foundPosition = false;
                     Font font;
 
+                    SizeF size;
                     do
                     {
                         font = new Font(FontFamily.GenericSansSerif, fontSize, GraphicsUnit.Pixel);
-                        SizeF size = g.MeasureString(wordFreq.Word, font, new PointF(0, 0), format);
+                        size = g.MeasureString(wordFreq.Word, font, new PointF(0, 0), format);
                         foundPosition = Map.TryFindUnoccupiedPosition((int)size.Width, (int)size.Height, out posX, out posY);
                         if (!foundPosition) fontSize -= FontStep;
-                    } while (fontSize > 5 && !foundPosition);
-                    if (fontSize <= 5) break;
+                    } while (fontSize > 0 && !foundPosition);
+                    if (fontSize <= 0) break;
 
-                    File.AppendAllLines("test.txt", new[] { $"x: {posX}, y: {posY}, fontSize: {fontSize}, text: {wordFreq.Word}" });
+                    //using (Bitmap tmpBitmap = new((int)size.Width, (int)size.Height, PixelFormat.Format32bppArgb))
+                    //{
+                    //    using (Graphics tmpG = Graphics.FromImage(tmpBitmap))
+                    //    {
+                    //        tmpG.Clear(Color.Transparent);
+                    //        tmpG.TextRenderingHint = TextRenderingHint.AntiAlias;
+                    //        tmpG.DrawString(wordFreq.Word, font, new SolidBrush(FontColor), 0, 0, format);
+                    //        Map.Update(tmpBitmap, new Rectangle(posX, posY, tmpBitmap.Width, tmpBitmap.Height));
+                    //    }
+
+                    //    g.DrawRectangle(new Pen(new SolidBrush(FontColor)), new Rectangle(posX, posY, tmpBitmap.Width, tmpBitmap.Height));
+                    //    g.DrawImage(tmpBitmap, posX, posY);
+                    //    i += 1;
+                    //    Map.SaveDebug($"{i}.txt");
+                    //    Map.SaveDebugImage($"{i}.png");
+                    //    Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
+                    //}
+
                     g.DrawString(wordFreq.Word, font, new SolidBrush(FontColor), posX, posY, format);
                     Map.Update(destination, posX, posY);
+
+                    i++;
+                    Map.SaveDebug($"{i}.txt");
+                    Map.SaveDebugImage($"{i}.png");
+                    Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
                 }
 
                 return new Bitmap(resultBitmap);

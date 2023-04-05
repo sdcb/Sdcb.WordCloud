@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Sdcb.WordClouds
 {
@@ -26,8 +27,7 @@ namespace Sdcb.WordClouds
             int width = Width - sizeX;
             int height = Height - sizeY;
 
-            int t = Math.Max(width, height);
-            int maxI = t * t;
+            int maxI = (int)Math.Pow(Math.Max(width, height), 2);
 
             for (int i = 0; i < maxI; i++)
             {
@@ -47,7 +47,7 @@ namespace Sdcb.WordClouds
                 }
                 if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y)))
                 {
-                    t = dx;
+                    int t = dx;
                     dx = -dy;
                     dy = t;
                 }
