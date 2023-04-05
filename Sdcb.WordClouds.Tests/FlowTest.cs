@@ -12,7 +12,7 @@ namespace Sdcb.WordClouds.Tests
         [Fact]
         public void MainFlow()
         {
-            WordCloud wc = new (800, 600);
+            WordCloud wc = new (800, 600, randomSeed: 0);
             IEnumerable<WordFrequency> ids = GetText()
                 .Split("\n")
                 .Select(x => x.Trim().Split("\t"))
