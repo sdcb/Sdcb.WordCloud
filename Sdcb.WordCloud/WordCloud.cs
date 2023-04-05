@@ -79,20 +79,74 @@ namespace Sdcb.WordClouds
             using (Bitmap resultBitmap = destination.CreateBitmap())
             using (Graphics g = Graphics.FromImage(resultBitmap))
             {
-                //if (mask != null)
-                //{
-                //    if (mask.HorizontalResolution != resultBitmap.HorizontalResolution || mask.VerticalResolution != resultBitmap.VerticalResolution)
-                //    {
-                //        mask.SetResolution(resultBitmap.HorizontalResolution, resultBitmap.VerticalResolution);
-                //    }
-                //    g.DrawImage(mask, 0, 0);
-                //}
-                g.Clear(Color.Transparent);
+                if (mask != null)
+                {
+                    if (mask.HorizontalResolution != resultBitmap.HorizontalResolution || mask.VerticalResolution != resultBitmap.VerticalResolution)
+                    {
+                        mask.SetResolution(resultBitmap.HorizontalResolution, resultBitmap.VerticalResolution);
+                    }
+
+                    // 创建一个新的Bitmap对象，用于存储转换后的图像
+                    Bitmap newBitmap = new Bitmap(mask.Width, mask.Height, PixelFormat.Format32bppArgb);
+
+                    // 锁定原始Bitmap的数据
+                    BitmapData originalData = mask.LockBits(new Rectangle(0, 0, mask.Width, mask.Height), ImageLockMode.ReadOnly, mask.PixelFormat);
+
+                    // 锁定新Bitmap的数据
+                    BitmapData newData = newBitmap.LockBits(new Rectangle(0, 0, newBitmap.Width, newBitmap.Height), ImageLockMode.WriteOnly, newBitmap.PixelFormat);
+
+                    // 定义指向原始Bitmap和新Bitmap数据的指针
+                    unsafe
+                    {
+                        byte* originalPtr = (byte*)originalData.Scan0;
+                        byte* newPtr = (byte*)newData.Scan0;
+                        int pixelFormatSize = Image.GetPixelFormatSize(mask.PixelFormat) / 8;
+
+                        for (int y = 0; y < mask.Height; y++)
+                        {
+                            for (int x = 0; x < mask.Width; x++)
+                            {
+                                // 计算当前像素在数据中的索引
+                                int maskIndex = (y * originalData.Stride) + (x * pixelFormatSize);
+                                int newIndex = (y * newData.Stride) + (x * 4);
+
+                                byte blue = originalPtr[maskIndex];
+                                byte green = originalPtr[maskIndex + 1];
+                                byte red = originalPtr[maskIndex + 2];
+
+                                // 检查当前像素是否为白色
+                                if (red == 255 || green == 255 || blue == 255)
+                                {
+                                    // 如果像素为白色，设置为透明颜色 (0, 0, 0, 0)
+                                    newPtr[newIndex] = 0; // Blue
+                                    newPtr[newIndex + 1] = 0; // Green
+                                    newPtr[newIndex + 2] = 0; // Red
+                                    newPtr[newIndex + 3] = 0; // Alpha
+                                }
+                                else
+                                {
+                                    // 如果像素为其它颜色，设置为黑色 (255, 0, 0, 0)
+                                    newPtr[newIndex] = 0; // Blue
+                                    newPtr[newIndex + 1] = 0; // Green
+                                    newPtr[newIndex + 2] = 0; // Red
+                                    newPtr[newIndex + 3] = 255; // Alpha
+                                }
+                            }
+                        }
+                    }
+
+                    // 解锁Bitmap数据
+                    mask.UnlockBits(originalData);
+                    newBitmap.UnlockBits(newData);
+                    g.DrawImage(newBitmap, 0, 0);
+                }
+                //resultBitmap.Save("test00.png");
+                //g.Clear(Color.Transparent);
                 
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
                 int i = 0;
-                Map.SaveDebug($"{i}.txt");
-                Map.SaveDebugImage($"{i}.png");
+                //Map.SaveDebug($"{i}.txt");
+                //Map.SaveDebugImage($"{i}.png");
                 Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
                 foreach (WordFrequency wordFreq in wordFrequencies)
                 {
@@ -117,30 +171,12 @@ namespace Sdcb.WordClouds
                     } while (fontSize > 0 && !foundPosition);
                     if (fontSize <= 0) break;
 
-                    //using (Bitmap tmpBitmap = new((int)size.Width, (int)size.Height, PixelFormat.Format32bppArgb))
-                    //{
-                    //    using (Graphics tmpG = Graphics.FromImage(tmpBitmap))
-                    //    {
-                    //        tmpG.Clear(Color.Transparent);
-                    //        tmpG.TextRenderingHint = TextRenderingHint.AntiAlias;
-                    //        tmpG.DrawString(wordFreq.Word, font, new SolidBrush(FontColor), 0, 0, format);
-                    //        Map.Update(tmpBitmap, new Rectangle(posX, posY, tmpBitmap.Width, tmpBitmap.Height));
-                    //    }
-
-                    //    g.DrawRectangle(new Pen(new SolidBrush(FontColor)), new Rectangle(posX, posY, tmpBitmap.Width, tmpBitmap.Height));
-                    //    g.DrawImage(tmpBitmap, posX, posY);
-                    //    i += 1;
-                    //    Map.SaveDebug($"{i}.txt");
-                    //    Map.SaveDebugImage($"{i}.png");
-                    //    Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
-                    //}
-
                     g.DrawString(wordFreq.Word, font, new SolidBrush(FontColor), posX, posY, format);
                     Map.Update(destination, posX, posY);
 
                     i++;
-                    Map.SaveDebug($"{i}.txt");
-                    Map.SaveDebugImage($"{i}.png");
+                    //Map.SaveDebug($"{i}.txt");
+                    //Map.SaveDebugImage($"{i}.png");
                     Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
                 }
 

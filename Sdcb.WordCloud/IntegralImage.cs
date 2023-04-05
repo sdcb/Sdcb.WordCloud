@@ -162,8 +162,8 @@ namespace Sdcb.WordClouds
 
         public void Update(FastImage image, int posX, int posY)
         {
-            if (posX < 1) posX = 1;
-            if (posY < 1) posY = 1;
+            if (posX < 0) throw new ArgumentOutOfRangeException(nameof(posX));
+            if (posY < 0) throw new ArgumentOutOfRangeException(nameof(posY));
 
             Span<byte> data = image.CreateDataAccessor();
             for (int y = posY; y < image.Height; ++y)
@@ -175,7 +175,23 @@ namespace Sdcb.WordClouds
                     {
                         pixel |= data[y * image.Stride + x * image.PixelFormatSize + p];
                     }
-                    Integral[x, y] = pixel + Integral[x - 1, y] + Integral[x, y - 1] - Integral[x - 1, y - 1];
+
+                    if (x == 0 && y == 0)
+                    {
+                        Integral[x, y] = pixel;
+                    }
+                    else if (x == 0)
+                    {
+                        Integral[x, y] = pixel + Integral[x, y - 1];
+                    }
+                    else if (y == 0)
+                    {
+                        Integral[x, y] = pixel + Integral[x - 1, y];
+                    }
+                    else
+                    {
+                        Integral[x, y] = pixel + Integral[x - 1, y] + Integral[x, y - 1] - Integral[x - 1, y - 1];
+                    }
                 }
             }
         }
