@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
+using System.IO;
 
 namespace Sdcb.WordClouds
 {
@@ -72,11 +73,11 @@ namespace Sdcb.WordClouds
                 Map.UpdateBitmapMask(mask, maskThreshold);
             }
 
-            using (FastImage fastImage = new(Width, Height, PixelFormat.Format32bppArgb))
-            using (Bitmap bitmap = fastImage.CreateBitmap())
-            using (Graphics g = Graphics.FromImage(bitmap))
+            using (FastImage destination = new(Width, Height, PixelFormat.Format32bppArgb))
+            using (Bitmap resultBitmap = destination.CreateBitmap())
+            using (Graphics g = Graphics.FromImage(resultBitmap))
             {
-                g.Clear(Color.Transparent);
+                g.Clear(Color.Black);
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
                 foreach (WordFrequency wordFreq in wordFrequencies)
                 {
@@ -97,14 +98,15 @@ namespace Sdcb.WordClouds
                         SizeF size = g.MeasureString(wordFreq.Word, font, new PointF(0, 0), format);
                         foundPosition = Map.TryFindUnoccupiedPosition((int)size.Width, (int)size.Height, out posX, out posY);
                         if (!foundPosition) fontSize -= FontStep;
-                    } while (fontSize > 0 && !foundPosition);
-                    if (fontSize <= 0) break;
+                    } while (fontSize > 5 && !foundPosition);
+                    if (fontSize <= 5) break;
 
+                    File.AppendAllLines("test.txt", new[] { $"x: {posX}, y: {posY}, fontSize: {fontSize}, text: {wordFreq.Word}" });
                     g.DrawString(wordFreq.Word, font, new SolidBrush(FontColor), posX, posY, format);
-                    Map.Update(fastImage, posX, posY);
+                    Map.Update(destination, posX, posY);
                 }
 
-                return new Bitmap(bitmap);
+                return new Bitmap(resultBitmap);
             }
         }
 

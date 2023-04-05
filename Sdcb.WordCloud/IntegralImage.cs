@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Text;
 
 namespace Sdcb.WordClouds
 {
@@ -13,15 +15,31 @@ namespace Sdcb.WordClouds
             Height = height;
         }
 
-        public void Reset()
+        public void Reset(uint n = 0)
         {
             for (int i = 0; i < Width; ++i)
             {
                 for (int j = 0; j < Height; ++j)
                 {
-                    Integral[i, j] = 0;
+                    Integral[i, j] = n;
                 }
             }
+        }
+
+        public unsafe void SaveDebug(string debugFile)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int y = 0; y < Height; ++y)
+            {
+                for (int x = 0; x < Width; ++x)
+                {
+                    sb.Append(Integral[x, y]);
+                    sb.Append(' ');
+                }
+                sb.AppendLine();
+            }
+            File.WriteAllText(debugFile, sb.ToString());
         }
 
         public unsafe void UpdateBitmapMask(Bitmap image, byte maskThreshold)
@@ -33,25 +51,42 @@ namespace Sdcb.WordClouds
                 throw new ArgumentException("Image size does not match integral image size.", nameof(image));
 
             BitmapData dataRect = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, image.PixelFormat);
+
             try
             {
                 int pixelFormatSize = dataRect.Stride / dataRect.Width;
                 ReadOnlySpan<byte> data = new(dataRect.Scan0.ToPointer(), dataRect.Stride * dataRect.Height);
-                for (int i = 1; i < dataRect.Height; ++i)
+                for (int y = 0; y < dataRect.Height; ++y)
                 {
-                    for (int j = 1; j < dataRect.Width; ++j)
+                    for (int x = 0; x < dataRect.Width; ++x)
                     {
-                        bool containsWordCloud = true;
+                        bool masked = false;
                         for (int p = 0; p < pixelFormatSize; ++p)
                         {
-                            if (data[i * dataRect.Stride + j * pixelFormatSize + p] < maskThreshold)
+                            if (data[y * dataRect.Stride + x * pixelFormatSize + p] < maskThreshold)
                             {
-                                containsWordCloud = false;
+                                masked = true;
                                 continue;
                             }
                         }
-                        byte pixel = containsWordCloud ? (byte)255 : (byte)0;
-                        Integral[j, i] = pixel + Integral[j - 1, i] + Integral[j, i - 1] - Integral[j - 1, i - 1];
+
+                        uint pixel = masked ? 1u : 0u;
+                        if (x == 0 && y == 0)
+                        {
+                            Integral[x, y] = pixel;
+                        }
+                        else if (x == 0)
+                        {
+                            Integral[x, y] = pixel + Integral[x, y - 1];
+                        }
+                        else if (y == 0)
+                        {
+                            Integral[x, y] = pixel + Integral[x - 1, y];
+                        }
+                        else
+                        {
+                            Integral[x, y] = pixel + Integral[x - 1, y] + Integral[x, y - 1] - Integral[x - 1, y - 1];
+                        }
                     }
                 }
             }
@@ -67,16 +102,16 @@ namespace Sdcb.WordClouds
             if (posY < 1) posY = 1;
 
             Span<byte> data = image.CreateDataAccessor();
-            for (int i = posY; i < image.Height; ++i)
+            for (int y = posY; y < image.Height; ++y)
             {
-                for (int j = posX; j < image.Width; ++j)
+                for (int x = posX; x < image.Width; ++x)
                 {
                     byte pixel = 0;
                     for (int p = 0; p < image.PixelFormatSize; ++p)
                     {
-                        pixel |= data[i * image.Stride + j * image.PixelFormatSize + p];
+                        pixel |= data[y * image.Stride + x * image.PixelFormatSize + p];
                     }
-                    Integral[j, i] = pixel + Integral[j - 1, i] + Integral[j, i - 1] - Integral[j - 1, i - 1];
+                    Integral[x, y] = pixel + Integral[x - 1, y] + Integral[x, y - 1] - Integral[x - 1, y - 1];
                 }
             }
         }

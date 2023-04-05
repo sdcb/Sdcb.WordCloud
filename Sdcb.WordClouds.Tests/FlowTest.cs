@@ -10,20 +10,29 @@ namespace Sdcb.WordClouds.Tests
     public class FlowTest
     {
         [Fact]
-        public void MainFlow()
+        public void Single()
         {
-            WordCloud wc = new (800, 600, randomSeed: 0);
-            IEnumerable<WordFrequency> ids = GetText()
-                .Split("\n")
-                .Select(x => x.Trim().Split("\t"))
-                .Select(x => new WordFrequency(Frequency: int.Parse(x[0]), Word: x[1]));
-
-            using (Image image = wc.Draw(ids))
+            WordCloud wc = new(800, 600, randomSeed: 0);
+            using (Image image = wc.Draw(MakeDemoFrquency()))
             {
                 image.Save("test.png");
             }
+        }
 
-            string GetText() => """
+        [Fact]
+        public void Masked()
+        {
+            WordCloud wc = new(800, 600, randomSeed: 0);
+            Bitmap mask = (Bitmap)Image.FromFile(@"C:\Users\sdfly\Desktop\mask.png");
+            using (Image image = wc.Draw(MakeDemoFrquency(), mask))
+            {
+                image.Save("test.png");
+            }
+        }
+
+        private IEnumerable<WordFrequency> MakeDemoFrquency()
+        {
+            string text = """
 459	cloud
 112	Retrieved
 88	form
@@ -219,6 +228,11 @@ namespace Sdcb.WordClouds.Tests
 11	tornado
 11	visible
 """;
+
+            return text
+                .Split("\n")
+                .Select(x => x.Trim().Split("\t"))
+                .Select(x => new WordFrequency(Frequency: int.Parse(x[0]), Word: x[1]));
         }
     }
 }
