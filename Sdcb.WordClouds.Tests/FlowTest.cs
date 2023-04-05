@@ -12,16 +12,13 @@ namespace Sdcb.WordClouds.Tests
         [Fact]
         public void MainFlow()
         {
-            var wc = new WordCloud(800, 600);
-            var ids = GetText()
+            WordCloud wc = new (800, 600);
+            IEnumerable<WordFrequency> ids = GetText()
                 .Split("\n")
                 .Select(x => x.Trim().Split("\t"))
-                .Select(x => new { Freq = int.Parse(x[0]), Word = x[1] })
-                .ToList();
-            var freqs = ids.Select(x => x.Freq).ToList();
-            var words = ids.Select(x => x.Word).ToList();
+                .Select(x => new WordFrequency(Frequency: int.Parse(x[0]), Word: x[1]));
 
-            using (Image image = wc.Draw(words, freqs))
+            using (Image image = wc.Draw(ids))
             {
                 image.Save("test.png");
             }

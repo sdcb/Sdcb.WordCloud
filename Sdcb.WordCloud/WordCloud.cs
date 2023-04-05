@@ -38,24 +38,18 @@ namespace Sdcb.WordClouds
         /// <summary>
         /// Draws the specified word cloud given list of words and frequecies
         /// </summary>
-        /// <param name="words">List of words ordered by occurance.</param>
-        /// <param name="freqs">List of frequecies.</param>
         /// <returns>Image of word cloud.</returns>
         /// <exception cref="System.ArgumentException">
         /// Arguments null.
         /// or
         /// Must have the same number of words as frequencies.
         /// </exception>
-        public Bitmap Draw(List<string> words, List<int> freqs)
+        public Bitmap Draw(IEnumerable<WordFrequency> wordFrequencies)
         {
             int fontSize = MaxFontSize;
-            if (words == null || freqs == null)
+            if (wordFrequencies == null)
             {
-                throw new ArgumentException("Arguments null.");
-            }
-            if (words.Count != freqs.Count)
-            {
-                throw new ArgumentException("Must have the same number of words as frequencies.");
+                throw new ArgumentNullException(nameof(wordFrequencies));
             }
 
             using (FastImage fastImage = new FastImage(Width, Height, PixelFormat.Format32bppArgb))
@@ -64,11 +58,11 @@ namespace Sdcb.WordClouds
             {
                 g.Clear(Color.Transparent);
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
-                for (int i = 0; i < words.Count; ++i)
+                foreach (WordFrequency wordFreq in wordFrequencies)
                 {
                     if (!UseRank)
                     {
-                        fontSize = (int) Math.Min(fontSize, 100*Math.Log10(freqs[i] + 100));
+                        fontSize = (int) Math.Min(fontSize, 100*Math.Log10(wordFreq.Frequency + 100));
                     }
                     StringFormat format = StringFormat.GenericTypographic;
                     format.FormatFlags &= ~StringFormatFlags.LineLimit;
@@ -80,13 +74,13 @@ namespace Sdcb.WordClouds
                     do
                     {
                         font = new Font(FontFamily.GenericSansSerif, fontSize, GraphicsUnit.Pixel);
-                        SizeF size = g.MeasureString(words[i], font, new PointF(0, 0), format);
+                        SizeF size = g.MeasureString(wordFreq.Word, font, new PointF(0, 0), format);
                         foundPosition = Map.TryFindUnoccupiedPosition((int) size.Width, (int) size.Height, out posX, out posY);
                         if (!foundPosition) fontSize -= FontStep;
                     } while (fontSize > 0 && !foundPosition);
                     if (fontSize <= 0) break;
 
-                    g.DrawString(words[i], font, new SolidBrush(FontColor), posX, posY, format);
+                    g.DrawString(wordFreq.Word, font, new SolidBrush(FontColor), posX, posY, format);
                     Map.Update(fastImage, posX, posY);
                 }
 
@@ -148,4 +142,11 @@ namespace Sdcb.WordClouds
         /// </summary>
         private int FontStep { get; set; }
     }
+
+    /// <summary>
+    /// Word and frequency pair
+    /// </summary>
+    /// <param name="Word">word ordered by occurance</param>
+    /// <param name="Frequency">frequecy</param>
+    public record WordFrequency(string Word, int Frequency);
 }
