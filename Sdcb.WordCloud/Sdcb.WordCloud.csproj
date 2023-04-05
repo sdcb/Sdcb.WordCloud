@@ -11,7 +11,7 @@
     <RepositoryUrl>https://github.com/sdcb/Sdcb.WordCloud</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>dotnet;dotnet-core;wordcloud;linqpad-samples</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <Copyright>MIT</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
