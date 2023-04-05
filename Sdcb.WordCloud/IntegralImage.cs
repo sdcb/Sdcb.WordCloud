@@ -11,6 +11,17 @@ namespace Sdcb.WordClouds
             Height = height;
         }
 
+        public void Reset()
+        {
+            for (int i = 0; i < Width; ++i)
+            {
+                for (int j = 0; j < Height; ++j)
+                {
+                    Integral[i, j] = 0;
+                }
+            }
+        }
+
         public void Update(FastImage image)
         {
             Update(image, 1, 1);
