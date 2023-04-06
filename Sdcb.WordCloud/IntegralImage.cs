@@ -106,7 +106,7 @@ namespace Sdcb.WordClouds
             return grayscaleBitmap;
         }
 
-        public unsafe void UpdateBitmapMask(Bitmap image, byte maskThreshold)
+        public unsafe void UpdateBitmapMask(Bitmap image)
         {
             if (image == null)
                 throw new ArgumentNullException(nameof(image));
@@ -127,7 +127,7 @@ namespace Sdcb.WordClouds
                         bool masked = false;
                         for (int p = 0; p < pixelFormatSize; ++p)
                         {
-                            if (data[y * dataRect.Stride + x * pixelFormatSize + p] < maskThreshold)
+                            if (data[y * dataRect.Stride + x * pixelFormatSize + p] != 255)
                             {
                                 masked = true;
                                 continue;

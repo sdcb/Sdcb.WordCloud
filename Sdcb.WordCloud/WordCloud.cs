@@ -56,7 +56,7 @@ namespace Sdcb.WordClouds
         /// or
         /// Must have the same number of words as frequencies.
         /// </exception>
-        public Bitmap Draw(IEnumerable<WordFrequency> wordFrequencies, Bitmap? mask = null, byte maskThreshold = 0xCF)
+        public Bitmap Draw(IEnumerable<WordFrequency> wordFrequencies, Bitmap? mask = null)
         {
             int fontSize = MaxFontSize;
             if (wordFrequencies == null)
@@ -72,7 +72,7 @@ namespace Sdcb.WordClouds
                     throw new ArgumentException("Mask must have the same size as the word cloud");
                 }
 
-                Map.UpdateBitmapMask(mask, maskThreshold);
+                Map.UpdateBitmapMask(mask);
             }
 
             using (FastImage destination = new(Width, Height, PixelFormat.Format32bppArgb))
