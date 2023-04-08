@@ -85,6 +85,7 @@ namespace Sdcb.WordClouds
                     }
 
                     SetGraphicsAsMask(mask, g);
+                    Map.Update(destination, 0, 0);
                 }
                 //resultBitmap.Save("test00.png");
                 //g.Clear(Color.Transparent);
@@ -92,7 +93,7 @@ namespace Sdcb.WordClouds
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
                 int i = 0;
                 //Map.SaveDebug($"{i}.txt");
-                //Map.SaveDebugImage($"{i}.png");
+                Map.SaveDebugImage($"{i}.png");
                 Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
                 foreach (WordFrequency wordFreq in wordFrequencies)
                 {
@@ -122,7 +123,7 @@ namespace Sdcb.WordClouds
 
                     i++;
                     //Map.SaveDebug($"{i}.txt");
-                    //Map.SaveDebugImage($"{i}.png");
+                    Map.SaveDebugImage($"{i}.png");
                     Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
                 }
 
@@ -161,10 +162,10 @@ namespace Sdcb.WordClouds
                         byte green = originalPtr[maskIndex + 1];
                         byte red = originalPtr[maskIndex + 2];
 
-                        // 检查当前像素是否为白色
-                        if (red == 255 || green == 255 || blue == 255)
+                        // 检查当前像素是否为不为#FFFFFF
+                        if (red != 255 && green != 255 || blue != 255)
                         {
-                            // 如果像素为白色，设置为透明颜色 (0, 0, 0, 0)
+                            // 如果像素不为白色，设置为透明颜色 (0, 0, 0, 0)（可以继续绘制）
                             newPtr[newIndex] = 0; // Blue
                             newPtr[newIndex + 1] = 0; // Green
                             newPtr[newIndex + 2] = 0; // Red
@@ -172,7 +173,7 @@ namespace Sdcb.WordClouds
                         }
                         else
                         {
-                            // 如果像素为其它颜色，设置为黑色 (255, 0, 0, 0)
+                            // 如果像素为其它颜色，设置为黑色 (255, 0, 0, 0)（不能继续绘制）
                             newPtr[newIndex] = 0; // Blue
                             newPtr[newIndex + 1] = 0; // Green
                             newPtr[newIndex + 2] = 0; // Red

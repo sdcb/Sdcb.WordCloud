@@ -17,8 +17,8 @@ namespace Sdcb.WordClouds.Tests
         [Fact]
         public void Masked()
         {
-            WordCloud wc = new(800, 600, randomSeed: 0);
-            Bitmap mask = (Bitmap)Image.FromFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "mask.png"));
+            WordCloud wc = new(900, 900, randomSeed: 0);
+            Bitmap mask = (Bitmap)Image.FromFile("alice_mask.png");
             using (Image image = wc.Draw(MakeDemoFrquency(), mask))
             {
                 image.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test.png"));
