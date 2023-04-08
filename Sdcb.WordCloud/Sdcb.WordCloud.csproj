@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net6</TargetFrameworks>
     <Company>sdcb</Company>
     <Authors>sdcb</Authors>
-    <Version>1.1</Version>
+    <Version>1.2</Version>
     <Description>Generate WordCloud image from .NET/.NET Core</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/sdcb/Sdcb.WordCloud</PackageProjectUrl>
