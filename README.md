@@ -11,12 +11,9 @@ var wc = new WordCloud(1024, 768);
 var ids = GetText()
     .Split("\n")
     .Select(x => x.Trim().Split("\t"))
-    .Select(x => new { Freq = int.Parse(x[0]), Word = x[1]})
-    .ToList();
-var freqs = ids.Select(x => x.Freq).ToList();
-var words = ids.Select(x => x.Word).ToList();
+    .Select(x => new WordFrequency(x[1], int.Parse(x[0])));
 
-wc.Draw(words, freqs).Dump();
+wc.Draw(ids).Save("test.png");
 
 string GetText() => @"459	cloud
         112	Retrieved
@@ -1111,7 +1108,7 @@ string GetText() => @"459	cloud
         2	whole
         2	wildfires
         2	yielding
-        2	¨¦tages";
+        2	étages";
 ```
 
 This project is initialy ported from https://archive.codeplex.com/?p=wordcloud
