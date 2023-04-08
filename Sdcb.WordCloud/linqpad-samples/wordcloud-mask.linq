@@ -1,18 +1,19 @@
 <Query Kind="Statements">
   <NuGetReference>Sdcb.WordCloud</NuGetReference>
   <Namespace>Sdcb.WordClouds</Namespace>
+  <Namespace>System.Drawing</Namespace>
+  <Namespace>System.Net.Http</Namespace>
 </Query>
 
-var wc = new WordCloud(1024, 768);
+var wc = new WordCloud(900, 900);
 var ids = GetText()
     .Split("\n")
     .Select(x => x.Trim().Split("\t"))
-    .Select(x => new { Freq = int.Parse(x[0]), Word = x[1]})
-    .ToList();
-var freqs = ids.Select(x => x.Freq).ToList();
-var words = ids.Select(x => x.Word).ToList();
+    .Select(x => new WordFrequency(x[1], int.Parse(x[0])));
 
-wc.Draw(words, freqs).Dump();
+HttpClient http = new HttpClient();
+HttpResponseMessage resp = await http.GetAsync("https://io.starworks.cc:88/cv-public/2023/alice_mask.png");
+wc.Draw(ids, (Bitmap)Bitmap.FromStream(resp.Content.ReadAsStream())).DumpUnscaled();
 
 string GetText() => @"459	cloud
         112	Retrieved
