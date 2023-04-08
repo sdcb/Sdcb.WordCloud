@@ -91,10 +91,10 @@ namespace Sdcb.WordClouds
                 //g.Clear(Color.Transparent);
 
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
-                int i = 0;
+                //int i = 0;
                 //Map.SaveDebug($"{i}.txt");
-                Map.SaveDebugImage($"{i}.png");
-                Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
+                //Map.SaveDebugImage($"{i}.png");
+                //Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
                 foreach (WordFrequency wordFreq in wordFrequencies)
                 {
                     if (!UseRank)
@@ -121,10 +121,10 @@ namespace Sdcb.WordClouds
                     g.DrawString(wordFreq.Word, font, new SolidBrush(FontColor), posX, posY, format);
                     Map.Update(destination, posX, posY);
 
-                    i++;
+                    //i++;
                     //Map.SaveDebug($"{i}.txt");
-                    Map.SaveDebugImage($"{i}.png");
-                    Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
+                    //Map.SaveDebugImage($"{i}.png");
+                    //Debug.WriteLine($"IsMonotonicallyIncreasing {i}: {Map.FindFirstNonIncreasingPoint()}");
                 }
 
                 ConvertBlackTo(resultBitmap, Color.Transparent);
@@ -135,7 +135,7 @@ namespace Sdcb.WordClouds
         private static void SetGraphicsAsMask(Bitmap mask, Graphics g)
         {
             // 创建一个新的Bitmap对象，用于存储转换后的图像
-            Bitmap newBitmap = new Bitmap(mask.Width, mask.Height, PixelFormat.Format32bppArgb);
+            Bitmap newBitmap = new(mask.Width, mask.Height, PixelFormat.Format32bppArgb);
 
             // 锁定原始Bitmap的数据
             BitmapData originalData = mask.LockBits(new Rectangle(0, 0, mask.Width, mask.Height), ImageLockMode.ReadOnly, mask.PixelFormat);
@@ -196,7 +196,7 @@ namespace Sdcb.WordClouds
                 throw new ArgumentException("The input bitmap must be ARGB32 pixel format.");
             }
 
-            Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+            Rectangle rect = new(0, 0, bitmap.Width, bitmap.Height);
             BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
             try
