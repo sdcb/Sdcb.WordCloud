@@ -1,4 +1,4 @@
-﻿namespace Sdcb.WordCloud;
+﻿namespace Sdcb.WordClouds;
 
 /// <summary>
 /// Word and frequency pair
