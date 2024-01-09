@@ -31,8 +31,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Sdcb.WordCloud\Sdcb.WordCloud.csproj" />
-  </ItemGroup>
-
 </Project>
