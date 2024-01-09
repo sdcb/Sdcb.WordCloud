@@ -12,6 +12,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdcb.WordClouds.Tests", "Sd
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdcb.WordCloud-Legacy", "Sdcb.WordCloud-Legacy\Sdcb.WordCloud-Legacy.csproj", "{758CD381-89D6-4306-B036-A5AB963D3101}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdcb.WordCloud", "Sdcb.WordCloud\Sdcb.WordCloud.csproj", "{314F25AA-98F6-4882-BC5C-98C208CE97E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdcb.WordCloud2.Tests", "Sdcb.WordCloud2.Tests\Sdcb.WordCloud2.Tests.csproj", "{E185B629-DC13-4607-B72D-8CB99C402E45}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +30,14 @@ Global
 		{758CD381-89D6-4306-B036-A5AB963D3101}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{758CD381-89D6-4306-B036-A5AB963D3101}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{758CD381-89D6-4306-B036-A5AB963D3101}.Release|Any CPU.Build.0 = Release|Any CPU
+		{314F25AA-98F6-4882-BC5C-98C208CE97E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{314F25AA-98F6-4882-BC5C-98C208CE97E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{314F25AA-98F6-4882-BC5C-98C208CE97E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{314F25AA-98F6-4882-BC5C-98C208CE97E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E185B629-DC13-4607-B72D-8CB99C402E45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E185B629-DC13-4607-B72D-8CB99C402E45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E185B629-DC13-4607-B72D-8CB99C402E45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E185B629-DC13-4607-B72D-8CB99C402E45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
