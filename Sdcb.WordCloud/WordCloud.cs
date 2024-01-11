@@ -1,9 +1,11 @@
 ﻿using SkiaSharp;
 using System;
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo("Sdcb.WordCloud2.Tests")]
 
 namespace Sdcb.WordClouds;
 
-public class WordCloud
+public static class WordCloud
 {
     public static SKBitmap Make(WordCloudOptions options)
     {
@@ -45,11 +47,20 @@ public class WordCloud
                 throw new ArgumentException("Mask image size does not match the canvas size.");
             }
 
-            if (mask.ColorType != SKColorType.Alpha8)
+            if (mask.ColorType == SKColorType.Alpha8 || mask.ColorType == SKColorType.Gray8)
             {
-                throw new ArgumentException("Mask image must be grayscale.");
+                U8MaskToCache(cache, width, height, mask);
             }
+            else
+            {
+                using SKBitmap tempMask = ConvertColor(mask, SKColorType.Gray8, SKAlphaType.Unknown);
+                U8MaskToCache(cache, width, height, tempMask);
+            }
+        }
+        return cache;
 
+        static unsafe bool[] U8MaskToCache(bool[] cache, int width, int height, SKBitmap mask)
+        {
             byte* ptr = (byte*)mask.GetPixels();
             fixed (bool* dest = cache)
             {
@@ -59,7 +70,17 @@ public class WordCloud
                     dest[i] = ptr[i] > 0;
                 }
             }
+
+            return cache;
         }
-        return cache;
+
+        static SKBitmap ConvertColor(SKBitmap bmp, SKColorType colorType, SKAlphaType alohaType)
+        {
+            SKBitmap result = new(bmp.Width, bmp.Height, colorType, alohaType);
+            using SKCanvas canvas = new(result);
+            canvas.DrawBitmap(bmp, 0, 0);
+
+            return result;
+        }
     }
 }
