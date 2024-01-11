@@ -1,10 +1,10 @@
 ﻿using SkiaSharp;
 using System;
-using System.Drawing;
+using System.Collections.Generic;
 
 namespace Sdcb.WordClouds;
 
-public record WordCloudOptions
+public record WordCloudOptions(IEnumerable<WordFrequency> WordFrequencies)
 {
     public int Width { get; set; } = 800;
 
@@ -20,12 +20,8 @@ public record WordCloudOptions
     public FontSizeAccessor FontSizeAccessor { get; set; } = ctx => (float)Math.Min(ctx.CurrentFontSize, 100 * Math.Log10(ctx.Frequency + 100));
 
     public SKBitmap? Background { get; set; }
-}
 
-public abstract record WordCloudBackground;
-internal record SolidColorWordCloudBackground(SKColor Color)
-{
-    public static SKColor Transparent { get; }
+    public SKBitmap? Mask { get; set; }
 }
 
 public delegate float FontSizeAccessor(WordCloudContext context);
