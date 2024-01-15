@@ -6,15 +6,6 @@ namespace Sdcb.WordCloud2.Tests;
 public class UnitTest1
 {
     [Fact]
-    public void CreateMaskCacheTest_Empty()
-    {
-        int width = 80, height = 60;
-        bool[] data = WordCloud.CreateMaskCache(width, height, null);
-        Assert.Equal(width * height, data.Length);
-        Assert.Equal(Enumerable.Range(0, width * height).Select(x => false), data);
-    }
-
-    [Fact]
     public unsafe void CreateMaskCacheTest_Mask_Gray8()
     {
         int width = 8, height = 6;
@@ -24,9 +15,13 @@ public class UnitTest1
         {
             pbmp[Random.Shared.Next(width * height)] = (byte)Random.Shared.Next(1, 256);
         }
-        byte[] bmpData = bmp.GetPixelSpan().ToArray();
+        pbmp[3] = 3;
 
-        bool[] data = WordCloud.CreateMaskCache(width, height, bmp);
+        byte[] bmpData = bmp.GetPixelSpan().ToArray();
+        MaskOptions mask = new(bmp);
+
+        bool[] data = new bool[width * height];
+        mask.FillMaskCache(width, height, data);
         Assert.Equal(width * height, data.Length);
         Assert.Equal(bmpData.Select(x => x > 0), data);
     }
@@ -41,11 +36,13 @@ public class UnitTest1
         {
             pbmp[Random.Shared.Next(width * height)] = (byte)Random.Shared.Next(1, 256);
         }
-        byte[] bmpData = bmp.GetPixelSpan().ToArray();
+        MaskOptions mask = MaskOptions.CreateWithAllowedFillColor(bmp, SKColors.Transparent);
+        bool[] cache = new bool[width * height];
+        mask.FillMaskCache(width, height, cache);
 
-        bool[] data = WordCloud.CreateMaskCache(width, height, bmp);
-        Assert.Equal(width * height, data.Length);
-        Assert.Equal(bmpData.Select(x => x > 0), data);
+        byte[] bmpData = bmp.GetPixelSpan().ToArray();
+        Assert.Equal(width * height, cache.Length);
+        Assert.Equal(bmpData.Select(x => x > 0), cache);
     }
 
     [Fact]
@@ -60,10 +57,12 @@ public class UnitTest1
             pbmp[pixelId * 4] = (byte)Random.Shared.Next(1, 256);
             pbmp[pixelId * 4 + 3] = 255;
         }
-        byte[] bmpData = bmp.GetPixelSpan().ToArray().Chunk(4).Select(x => x[0]).ToArray();
+        MaskOptions mask = MaskOptions.CreateWithAllowedFillColor(bmp, SKColors.Transparent);
 
-        bool[] data = WordCloud.CreateMaskCache(width, height, bmp);
-        Assert.Equal(width * height, data.Length);
-        Assert.Equal(bmpData.Select(x => x > 0), data);
+        byte[] bmpData = bmp.GetPixelSpan().ToArray().Chunk(4).Select(x => x[0]).ToArray();
+        bool[] cache = new bool[width * height];
+        mask.FillMaskCache(width, height, cache);
+        Assert.Equal(width * height, cache.Length);
+        Assert.Equal(bmpData.Select(x => x > 0), cache);
     }
 }

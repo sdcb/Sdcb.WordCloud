@@ -12,6 +12,8 @@ public static class WordCloud
         SKBitmap result = new(options.Width, options.Height);
         int[] integral = new int[options.Height * options.Width];
         bool[] cache = new bool[options.Height * options.Width];
+        options.Mask?.FillMaskCache(options.Width, options.Height, cache);
+        UpdateIntegral(cache, integral, options.Width, options.Height);
 
         // init canvas
         using SKCanvas canvas = new(result);
@@ -24,63 +26,57 @@ public static class WordCloud
         throw new NotImplementedException();
     }
 
-    private static void DrawBackground(int width, int height, SKBitmap? background, SKCanvas canvas)
+    internal unsafe static int[] UpdateIntegral(bool[] cache, int[] integral, int width, int height)
     {
-        // draw background if provided
-        if (background is not null)
+        if (cache.Length != width * height || integral.Length != width * height)
         {
-            if (background.Width < width || background.Height < height)
-            {
-                throw new ArgumentException("Background image size does not match the canvas size.");
-            }
-            canvas.DrawBitmap(background, SKRect.Create(width, height));
+            throw new ArgumentException("Cache size does not match the integral size.");
         }
-    }
 
-    internal unsafe static bool[] CreateMaskCache(int width, int height, SKBitmap? mask)
-    {
-        bool[] cache = new bool[width * height];
-        if (mask != null)
+        fixed (bool* cachePtr = cache)
+        fixed (int* integralPtr = integral)
         {
-            if (mask.Width < width || mask.Height < height)
+            // 初始化第一个元素
+            integralPtr[0] = cachePtr[0] ? 1 : 0;
+
+            // 初始化第一行
+            for (int x = 1; x < width; x++)
             {
-                throw new ArgumentException("Mask image size does not match the canvas size.");
+                integralPtr[x] = integralPtr[x - 1] + (cachePtr[x] ? 1 : 0);
             }
 
-            if (mask.ColorType == SKColorType.Alpha8 || mask.ColorType == SKColorType.Gray8)
+            // 初始化第一列
+            for (int y = 1; y < height; y++)
             {
-                U8MaskToCache(cache, width, height, mask);
+                int idx = y * width;
+                integralPtr[idx] = integralPtr[idx - width] + (cachePtr[idx] ? 1 : 0);
             }
-            else
-            {
-                using SKBitmap tempMask = ConvertColor(mask, SKColorType.Gray8, SKAlphaType.Unknown);
-                U8MaskToCache(cache, width, height, tempMask);
-            }
-        }
-        return cache;
 
-        static unsafe bool[] U8MaskToCache(bool[] cache, int width, int height, SKBitmap mask)
-        {
-            byte* ptr = (byte*)mask.GetPixels();
-            fixed (bool* dest = cache)
+            // 计算其余的积分图值
+            for (int y = 1; y < height; y++)
             {
-                int size = width * height;
-                for (int i = 0; i < size; i++)
+                for (int x = 1; x < width; x++)
                 {
-                    dest[i] = ptr[i] > 0;
+                    int idx = y * width + x;
+                    // 当前点的积分值 = 左边的积分值 + 上边的积分值 - 左上角的积分值 + 当前点的值
+                    integralPtr[idx] = integralPtr[idx - 1] + integralPtr[idx - width]
+                                        - integralPtr[idx - width - 1] + (cachePtr[idx] ? 1 : 0);
                 }
             }
-
-            return cache;
-        }
-
-        static SKBitmap ConvertColor(SKBitmap bmp, SKColorType colorType, SKAlphaType alohaType)
-        {
-            SKBitmap result = new(bmp.Width, bmp.Height, colorType, alohaType);
-            using SKCanvas canvas = new(result);
-            canvas.DrawBitmap(bmp, 0, 0);
-
-            return result;
+            return integral;
         }
     }
-}
+
+        private static void DrawBackground(int width, int height, SKBitmap? background, SKCanvas canvas)
+        {
+            // draw background if provided
+            if (background is not null)
+            {
+                if (background.Width < width || background.Height < height)
+                {
+                    throw new ArgumentException("Background image size does not match the canvas size.");
+                }
+                canvas.DrawBitmap(background, SKRect.Create(width, height));
+            }
+        }
+    }
