@@ -35,10 +35,43 @@ public record MaskOptions(SKBitmap Mask, SKColor? AllowedFillColor, SKColor? Blo
         {
             U8MaskToCache(cache, width, height, this);
         }
+        else if (Mask.ColorType == SKColorType.Bgra8888)
+        {
+            Bgra8888MaskToCache(cache, width, height, this);
+        }
         else
         {
             using SKBitmap tempMask = ConvertColor(Mask, SKColorType.Gray8, SKAlphaType.Unknown);
             U8MaskToCache(cache, width, height, this with { Mask = tempMask });
+        }
+    }
+
+    private static int ConvertSKColorToInt32(SKColor color, SKColorType maskColorType)
+    {
+        // 转换颜色格式，将 SKColor 拆分为对应的通道
+        byte red = color.Red;
+        byte green = color.Green;
+        byte blue = color.Blue;
+        byte alpha = color.Alpha;
+
+        switch (maskColorType)
+        {
+            case SKColorType.Rgba8888:
+                // RGBA8888 格式的32位整数
+                return (alpha << 24) | (blue << 16) | (green << 8) | red;
+
+            case SKColorType.Bgra8888:
+                // BGRA8888 格式的32位整数
+                return (alpha << 24) | (red << 16) | (green << 8) | blue;
+
+            case SKColorType.Rgb888x:
+                // RGB888x 格式是没有Alpha通道的RGB颜色，x代表无用通道
+                return (0xFF << 24) | (blue << 16) | (green << 8) | red;
+
+            default:
+                // 如果不是上述指定的格式，则抛出异常
+                throw new ArgumentOutOfRangeException(nameof(maskColorType),
+                    "Mask color type must be Rgba8888, Bgra8888, or Rgb888x.");
         }
     }
 
@@ -60,6 +93,31 @@ public record MaskOptions(SKBitmap Mask, SKColor? AllowedFillColor, SKColor? Blo
         else
         {
             throw new ArgumentOutOfRangeException(nameof(maskColorType), "Mask color type must be Gray8 or Alpha8.");
+        }
+    }
+
+    private unsafe void Bgra8888MaskToCache(bool[] cache, int width, int height, MaskOptions maskOptions)
+    {
+        int* ptr = (int*)maskOptions.Mask.GetPixels();
+        fixed (bool* dest = cache)
+        {
+            int size = width * height;
+            if (maskOptions.AllowedFillColor.HasValue)
+            {
+                int i32 = ConvertSKColorToInt32(maskOptions.AllowedFillColor.Value, maskOptions.Mask.ColorType);
+                for (int i = 0; i < size; i++)
+                {
+                    dest[i] = ptr[i] != i32;
+                }
+            }
+            else if (maskOptions.BlockedFillColor != null)
+            {
+                int i32 = ConvertSKColorToInt32(maskOptions.BlockedFillColor.Value, maskOptions.Mask.ColorType);
+                for (int i = 0; i < size; i++)
+                {
+                    dest[i] = ptr[i] == i32;
+                }
+            }
         }
     }
 
