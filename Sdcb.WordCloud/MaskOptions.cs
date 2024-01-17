@@ -58,8 +58,10 @@ public record MaskOptions(SKBitmap Mask, SKColor? BackgroundColor, SKColor? Fore
         return new(mask, null, foregroundColor);
     }
 
-    public void FillMaskCache(int width, int height, bool[] cache)
+    public void FillMaskCache(bool[,] cache)
     {
+        int height = cache.GetLength(0);
+        int width = cache.GetLength(1);
         if (Mask.Width < width || Mask.Height < height)
         {
             throw new ArgumentException("Mask image size does not match the canvas size.");
@@ -72,11 +74,11 @@ public record MaskOptions(SKBitmap Mask, SKColor? BackgroundColor, SKColor? Fore
 
         if (Mask.ColorType == SKColorType.Alpha8 || Mask.ColorType == SKColorType.Gray8)
         {
-            FillMaskCacheU8(cache, width, height);
+            FillMaskCacheU8(cache);
         }
         else if (Mask.ColorType == SKColorType.Bgra8888 || Mask.ColorType == SKColorType.Rgba8888 || Mask.ColorType == SKColorType.Rgb888x)
         {
-            FillMaskCacheBgra8888(cache, width, height);
+            FillMaskCacheBgra8888(cache);
         }
         else
         {
@@ -84,8 +86,10 @@ public record MaskOptions(SKBitmap Mask, SKColor? BackgroundColor, SKColor? Fore
         }
     }
 
-    internal unsafe void FillMaskCacheBgra8888(bool[] cache, int width, int height)
+    internal unsafe void FillMaskCacheBgra8888(bool[,] cache)
     {
+        int height = cache.GetLength(0);
+        int width = cache.GetLength(1);
         int* ptr = (int*)Mask.GetPixels();
         fixed (bool* dest = cache)
         {
@@ -109,8 +113,10 @@ public record MaskOptions(SKBitmap Mask, SKColor? BackgroundColor, SKColor? Fore
         }
     }
 
-    internal unsafe bool[] FillMaskCacheU8(bool[] cache, int width, int height)
+    internal unsafe void FillMaskCacheU8(bool[,] cache)
     {
+        int height = cache.GetLength(0);
+        int width = cache.GetLength(1);
         byte* ptr = (byte*)Mask.GetPixels();
         fixed (bool* dest = cache)
         {
@@ -132,8 +138,6 @@ public record MaskOptions(SKBitmap Mask, SKColor? BackgroundColor, SKColor? Fore
                 }
             }
         }
-
-        return cache;
     }
 
     private static SKBitmap ConvertColor(SKBitmap bmp, SKColorType colorType, SKAlphaType alohaType)

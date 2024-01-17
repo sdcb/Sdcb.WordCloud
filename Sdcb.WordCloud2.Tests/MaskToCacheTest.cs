@@ -1,6 +1,7 @@
 using Sdcb.WordClouds;
 using SkiaSharp;
 using System.Buffers.Binary;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Sdcb.WordCloud2.Tests;
 
@@ -20,10 +21,10 @@ public class MaskToCacheTest
         byte[] bmpData = bmp.GetPixelSpan().ToArray();
         MaskOptions mask = new(bmp);
 
-        bool[] data = new bool[width * height];
-        mask.FillMaskCache(width, height, data);
-        Assert.Equal(width * height, data.Length);
-        Assert.Equal(bmpData.Select(x => x > 0), data);
+        bool[,] cache = new bool[height, width];
+        mask.FillMaskCache(cache);
+        Assert.Equal(width * height, cache.Length);
+        Assert.Equal(bmpData.Select(x => x > 0), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -40,10 +41,10 @@ public class MaskToCacheTest
         byte[] bmpData = bmp.GetPixelSpan().ToArray();
         MaskOptions mask = MaskOptions.CreateWithBackgroundColor(bmp, SKColors.Black);
 
-        bool[] data = new bool[width * height];
-        mask.FillMaskCache(width, height, data);
-        Assert.Equal(width * height, data.Length);
-        Assert.Equal(bmpData.Select(x => x > 0), data);
+        bool[,] cache = new bool[height, width];
+        mask.FillMaskCache(cache);
+        Assert.Equal(width * height, cache.Length);
+        Assert.Equal(bmpData.Select(x => x > 0), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -57,12 +58,12 @@ public class MaskToCacheTest
             pbmp[Random.Shared.Next(width * height)] = (byte)Random.Shared.Next(1, 256);
         }
         MaskOptions mask = MaskOptions.CreateWithBackgroundColor(bmp, SKColors.Transparent);
-        bool[] cache = new bool[width * height];
-        mask.FillMaskCache(width, height, cache);
+        bool[,] cache = new bool[height, width];
+        mask.FillMaskCache(cache);
 
         byte[] bmpData = bmp.GetPixelSpan().ToArray();
         Assert.Equal(width * height, cache.Length);
-        Assert.Equal(bmpData.Select(x => x > 0), cache);
+        Assert.Equal(bmpData.Select(x => x > 0), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -80,15 +81,15 @@ public class MaskToCacheTest
         }
         MaskOptions mask = MaskOptions.CreateWithBackgroundColor(bmp, SKColors.Transparent);
 
-        bool[] cache = new bool[width * height];
+        bool[,] cache = new bool[height, width];
 
         // act
-        mask.FillMaskCache(width, height, cache);
+        mask.FillMaskCache(cache);
 
         // assert
         int[] bmpData = bmp.GetPixelSpan().ToArray().Chunk(4).Select(x => BitConverter.ToInt32(x)).ToArray();
         Assert.Equal(width * height, cache.Length);
-        Assert.Equal(bmpData.Select(x => x > 0), cache);
+        Assert.Equal(bmpData.Select(x => x > 0), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -110,10 +111,10 @@ public class MaskToCacheTest
         }
         MaskOptions mask = MaskOptions.CreateWithBackgroundColor(bmp, SKColors.Black);
 
-        bool[] cache = new bool[width * height];
+        bool[,] cache = new bool[height, width];
 
         // act
-        mask.FillMaskCache(width, height, cache);
+        mask.FillMaskCache(cache);
 
         // assert
         int[] bmpData = bmp.GetPixelSpan().ToArray().Chunk(4)
@@ -121,7 +122,7 @@ public class MaskToCacheTest
             .ToArray();
         int black = MaskOptions.ConvertSKColorToInt32(SKColors.Black, SKColorType.Bgra8888);
         Assert.Equal(width * height, cache.Length);
-        Assert.Equal(bmpData.Select(x => x != black), cache);
+        Assert.Equal(bmpData.Select(x => x != black), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -143,10 +144,10 @@ public class MaskToCacheTest
         }
         MaskOptions mask = MaskOptions.CreateWithBackgroundColor(bmp, SKColors.Red);
 
-        bool[] cache = new bool[width * height];
+        bool[,] cache = new bool[height, width];
 
         // act
-        mask.FillMaskCache(width, height, cache);
+        mask.FillMaskCache(cache);
 
         // assert
         int[] bgraData = bmp.GetPixelSpan().ToArray().Chunk(4)
@@ -154,7 +155,7 @@ public class MaskToCacheTest
             .ToArray();
         int backgroundBgra = MaskOptions.ConvertSKColorToInt32(SKColors.Red, SKColorType.Bgra8888);
         Assert.Equal(width * height, cache.Length);
-        Assert.Equal(bgraData.Select(x => x != backgroundBgra), cache);
+        Assert.Equal(bgraData.Select(x => x != backgroundBgra), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -176,10 +177,10 @@ public class MaskToCacheTest
         }
         MaskOptions mask = MaskOptions.CreateWithBackgroundColor(bmp, SKColors.Red);
 
-        bool[] cache = new bool[width * height];
+        bool[,] cache = new bool[height, width];
 
         // act
-        mask.FillMaskCache(width, height, cache);
+        mask.FillMaskCache(cache);
 
         // assert
         int[] bmpData = bmp.GetPixelSpan().ToArray().Chunk(4)
@@ -187,7 +188,7 @@ public class MaskToCacheTest
             .ToArray();
         int backgroundBgra = MaskOptions.ConvertSKColorToInt32(SKColors.Red, SKColorType.Bgra8888);
         Assert.Equal(width * height, cache.Length);
-        Assert.Equal(bmpData.Select(x => x != backgroundBgra), cache);
+        Assert.Equal(bmpData.Select(x => x != backgroundBgra), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -204,10 +205,10 @@ public class MaskToCacheTest
             pbmp[pixelId] = foregroundColor;
         }
         MaskOptions mask = MaskOptions.CreateWithForegroundColor(bmp, SKColors.Red);
-        bool[] cache = new bool[width * height];
+        bool[,] cache = new bool[height, width];
 
         // act
-        mask.FillMaskCache(width, height, cache);
+        mask.FillMaskCache(cache);
 
         // assert
         int[] bmpData = bmp.GetPixelSpan().ToArray().Chunk(4)
@@ -215,7 +216,7 @@ public class MaskToCacheTest
             .ToArray();
         
         Assert.Equal(width * height, cache.Length);
-        Assert.Equal(bmpData.Select(x => x == foregroundColor), cache);
+        Assert.Equal(bmpData.Select(x => x == foregroundColor), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -233,10 +234,10 @@ public class MaskToCacheTest
             pbmp[pixelId] = foregroundColorI32;
         }
         MaskOptions mask = MaskOptions.CreateWithForegroundColor(bmp, foregroundColor);
-        bool[] cache = new bool[width * height];
+        bool[,] cache = new bool[height, width];
 
         // act
-        mask.FillMaskCache(width, height, cache);
+        mask.FillMaskCache(cache);
 
         // assert
         int[] bmpData = bmp.GetPixelSpan().ToArray().Chunk(4)
@@ -244,7 +245,7 @@ public class MaskToCacheTest
             .ToArray();
 
         Assert.Equal(width * height, cache.Length);
-        Assert.Equal(bmpData.Select(x => x == foregroundColorI32), cache);
+        Assert.Equal(bmpData.Select(x => x == foregroundColorI32), Utils.Convert2DTo1D(cache));
     }
 
     [Fact]
@@ -253,7 +254,7 @@ public class MaskToCacheTest
         int width = 5, height = 3;
         using SKBitmap bmp = new(width, height, SKColorType.Bgr101010x, SKAlphaType.Premul);
         MaskOptions mask = MaskOptions.CreateWithBackgroundColor(bmp, SKColors.Transparent);
-        bool[] cache = new bool[width * height];
-        Assert.Throws<ArgumentException>(() => mask.FillMaskCache(width, height, cache));
+        bool[,] cache = new bool[height, width];
+        Assert.Throws<ArgumentException>(() => mask.FillMaskCache(cache));
     }
 }

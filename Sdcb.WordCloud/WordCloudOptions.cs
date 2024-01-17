@@ -10,8 +10,9 @@ public record WordCloudOptions(IEnumerable<WordFrequency> WordFrequencies)
 
     public int Height { get; set; } = 600;
 
-    private int? _maxFontSize = null;
-    public int MaxFontSize { get => _maxFontSize ?? Math.Max(Width, Height); set => _maxFontSize = value; }
+    public float? InitialFontSize { get; set; }
+
+    public float GetInitialFontSize() => InitialFontSize ?? Math.Min(Width, Height);
 
     public float FontStep { get; set; } = 1.0f;
 
@@ -28,4 +29,4 @@ public delegate float FontSizeAccessor(WordCloudContext context);
 
 public delegate SKColor FontColorAccessor(WordCloudContext context);
 
-public record WordCloudContext(string Word, int Frequency, int CurrentFontSize) : WordFrequency(Word, Frequency);
+public record WordCloudContext(string Word, int Frequency, float CurrentFontSize) : WordFrequency(Word, Frequency);
