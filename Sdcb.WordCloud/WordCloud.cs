@@ -1,78 +1,70 @@
 ﻿using SkiaSharp;
 using System;
-using System.Runtime.CompilerServices;
-[assembly: InternalsVisibleTo("Sdcb.WordCloud2.Tests")]
+using System.IO;
 
 namespace Sdcb.WordClouds;
 
-public static class WordCloud
+public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextItem[] TextItems)
 {
-    public static SKBitmap Make(WordCloudOptions options)
+    public SKBitmap ToBitmap(bool addBox = false)
     {
-        SKBitmap result = new(options.Width, options.Height);
-        int[,] integral = new int[options.Height, options.Width];
-        bool[,] cache = new bool[options.Height, options.Width];
-        options.Mask?.FillMaskCache(cache);
-        UpdateIntegral(cache, integral);
-
-        // init canvas
+        SKBitmap result = new(Width, Height);
         using SKCanvas canvas = new(result);
-        if (options.Background is not null)
+        using SKPaint textPainter = new()
         {
-            if (options.Background.Width < options.Width || options.Background.Height < options.Height)
+            IsAntialias = true,
+        };
+        using FontManager fontManager = new(FontFamilyNames);
+        using SKBitmap temp = new(Width, Height);
+        using SKCanvas tempCanvas = new(temp);
+        using SKPaint tempClearer = new()
+        {
+            BlendMode = SKBlendMode.Src,
+            Color = SKColors.Transparent,
+        };
+        foreach (TextItem item in TextItems)
+        {
+            tempCanvas.DrawRect(SKRect.Create(item.Rect.Size), tempClearer);
+            textPainter.TextSize = item.FontSize;
+            textPainter.Color = item.Color;
+            float x = 0;
+            foreach (TextAndFont segment in fontManager.GroupTextSingleLine(item.TextContent))
             {
-                throw new ArgumentException("Background image size does not match the canvas size.");
+                textPainter.Typeface = segment.Typeface;
+                tempCanvas.DrawText(item.TextContent, x, -textPainter.FontMetrics.Ascent, textPainter);
+                x += textPainter.MeasureText(segment.Text);
             }
-            canvas.DrawBitmap(options.Background, SKRect.Create(options.Width, options.Height));
-        }
 
-        float fontSize = options.GetInitialFontSize();
-        foreach (WordFrequency word in options.WordFrequencies)
-        {
-            fontSize = options.FontSizeAccessor(new(word.Word, word.Frequency, fontSize));
+            //TestWordCloudBitmap(temp, item.TextContent + ".png");
+            SKRect realRect = SKRect.Create(x, item.FontSize);
+            SKRect destRect = SKRect.Create(realRect.Size);
+            SKMatrix transform = SKMatrix.Concat(
+                SKMatrix.CreateTranslation(item.Rect.Location.X, item.Rect.Location.Y),
+                SKMatrix.CreateRotationDegrees(item.Rotate, 0, 0)
+                //SKMatrix.Identity
+                );
+            canvas.SetMatrix(transform);
+            canvas.DrawBitmap(temp, SKPoint.Empty);
+            if (addBox)
+            {
+                canvas.DrawRect(destRect, new SKPaint { Color = item.Color, Style = SKPaintStyle.Stroke, StrokeWidth = 1 });
+            }
         }
+        return result;
+    }
+
+    private void TestWordCloudBitmap(SKBitmap bitmap, string fileName)
+    {
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        using var stream = File.OpenWrite(Path.Combine(@"C:\Users\ZhouJie\source\repos\Sdcb.WordCloud\Sdcb.WordCloud2.Tests\bin\Debug\net8.0\WordCloudOutputs", fileName));
+        data.SaveTo(stream);
+    }
+
+    public string ToSvg()
+    {
         throw new NotImplementedException();
     }
-
-internal unsafe static void UpdateIntegral(bool[,] cache, int[,] integral)
-{
-    int height = cache.GetLength(0);
-    int width = cache.GetLength(1);
-    if (integral.GetLength(0) != height || integral.GetLength(1) != width)
-    {
-        throw new ArgumentException("Cache size does not match the integral size.");
-    }
-
-    fixed (bool* cachePtr = cache)
-    fixed (int* integralPtr = integral)
-    {
-        // 初始化第一个元素
-        integralPtr[0] = cachePtr[0] ? 1 : 0;
-
-        // 初始化第一行
-        for (int x = 1; x < width; x++)
-        {
-            integralPtr[x] = integralPtr[x - 1] + (cachePtr[x] ? 1 : 0);
-        }
-
-        // 初始化第一列
-        for (int y = 1; y < height; y++)
-        {
-            int idx = y * width;
-            integralPtr[idx] = integralPtr[idx - width] + (cachePtr[idx] ? 1 : 0);
-        }
-
-        // 计算其余的积分图值
-        for (int y = 1; y < height; y++)
-        {
-            for (int x = 1; x < width; x++)
-            {
-                int idx = y * width + x;
-                // 当前点的积分值 = 左边的积分值 + 上边的积分值 - 左上角的积分值 + 当前点的值
-                integralPtr[idx] = integralPtr[idx - 1] + integralPtr[idx - width]
-                                    - integralPtr[idx - width - 1] + (cachePtr[idx] ? 1 : 0);
-            }
-        }
-    }
 }
-}
+
+public record TextItem(string TextContent, float FontSize, SKColor Color, SKRect Rect, float Rotate);

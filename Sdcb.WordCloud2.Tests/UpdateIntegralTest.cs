@@ -10,7 +10,7 @@ public class UpdateIntegralTest
         bool[,] cache = new bool[2, 3];
         int[,] integral = new int[2, 2]; // Intentionally wrong size
 
-        var exception = Record.Exception(() => WordCloud.UpdateIntegral(cache, integral));
+        var exception = Record.Exception(() => WordCloudFactory.UpdateIntegral(cache, integral));
 
         Assert.NotNull(exception);
         Assert.IsType<ArgumentException>(exception);
@@ -27,7 +27,7 @@ public class UpdateIntegralTest
         };
         int[,] integral = new int[2, 2];
 
-        WordCloud.UpdateIntegral(cache, integral);
+        WordCloudFactory.UpdateIntegral(cache, integral);
 
         Assert.Equal(0, integral[0, 0]);
         Assert.Equal(0, integral[0, 1]);
@@ -41,7 +41,7 @@ public class UpdateIntegralTest
         bool[,] cache = new bool[2, 2] { { true, true }, { true, true } };
         int[,] integral = new int[2, 2];
 
-        WordCloud.UpdateIntegral(cache, integral);
+        WordCloudFactory.UpdateIntegral(cache, integral);
 
         Assert.Equal(1, integral[0, 0]);
         Assert.Equal(2, integral[0, 1]);
@@ -65,7 +65,7 @@ public class UpdateIntegralTest
             2, 3, 5
         ];
 
-        WordCloud.UpdateIntegral(cache, integral);
+        WordCloudFactory.UpdateIntegral(cache, integral);
 
         Assert.Equal(expectedIntegralFlat, Utils.Convert2DTo1D(integral));
     }
@@ -87,7 +87,7 @@ public class UpdateIntegralTest
             2, 3, 5, 6
         ];
 
-        WordCloud.UpdateIntegral(cache, integral);
+        WordCloudFactory.UpdateIntegral(cache, integral);
 
         Assert.Equal(expectedIntegralFlat, Utils.Convert2DTo1D(integral));
     }
@@ -109,7 +109,7 @@ public class UpdateIntegralTest
             3, 6, 9
         ];
 
-        WordCloud.UpdateIntegral(cache, integral);
+        WordCloudFactory.UpdateIntegral(cache, integral);
 
         Assert.Equal(expectedIntegralFlat, Utils.Convert2DTo1D(integral));
     }

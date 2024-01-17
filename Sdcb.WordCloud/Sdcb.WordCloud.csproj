@@ -16,6 +16,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
+    <RootNamespace>Sdcb.WordClouds</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
