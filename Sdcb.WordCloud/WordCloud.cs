@@ -1,9 +1,6 @@
 ﻿using SkiaSharp;
 using System;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Net.NetworkInformation;
 
 namespace Sdcb.WordClouds;
 
@@ -13,16 +10,8 @@ public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextIte
     {
         SKBitmap result = new(Width, Height);
         using SKCanvas canvas = new(result);
-        using SKPaint textPainter = new()
-        {
-            IsAntialias = true,
-        };
+        using SKPaint textPainter = new() { IsAntialias = true, };
         using FontManager fontManager = new(FontFamilyNames);
-        using SKPaint tempClearer = new()
-        {
-            BlendMode = SKBlendMode.Src,
-            Color = SKColors.Transparent,
-        };
         foreach (TextItem item in TextItems)
         {
             if (string.IsNullOrEmpty(item.TextContent))
@@ -32,7 +21,7 @@ public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextIte
 
             textPainter.TextSize = item.FontSize;
             textPainter.Color = item.Color;
-            using SKBitmap temp = CreateTextLayout(item.TextContent, fontManager, textPainter);
+            using SKBitmap temp = fontManager.CreateTextLayout(item.TextContent, textPainter);
 
             SKSize size = new(temp.Width, temp.Height);
             SKPoint topLeft = new(item.Center.X - size.Width / 2, item.Center.Y - size.Height / 2);
@@ -53,24 +42,6 @@ public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextIte
             }
         }
         return result;
-    }
-
-    private static SKBitmap CreateTextLayout(string text, FontManager fontManager, SKPaint paint)
-    {
-        PositionedText[] textSegments = fontManager
-            .GroupTextSingleLinePositioned(text, paint)
-            .ToArray();
-        SKSize size = new(textSegments[^1].Right, textSegments.Max(x => x.Height));
-
-        SKBitmap temp = new((int)Math.Ceiling(size.Width), (int)Math.Ceiling(size.Height));
-        using SKCanvas tempCanvas = new(temp);
-        foreach (PositionedText segment in textSegments)
-        {
-            paint.Typeface = segment.Typeface;
-            tempCanvas.DrawText(text, segment.Left, -paint.FontMetrics.Ascent, paint);
-        }
-
-        return temp;
     }
 
     private static void TestWordCloudBitmap(SKBitmap bitmap, string fileName)

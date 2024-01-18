@@ -117,6 +117,23 @@ internal class FontManager : IDisposable
         }
     }
 
+    public SKBitmap CreateTextLayout(string text, SKPaint paint)
+    {
+        PositionedText[] textSegments = GroupTextSingleLinePositioned(text, paint)
+            .ToArray();
+        SKSize size = new(textSegments[^1].Right, textSegments.Max(x => x.Height));
+
+        SKBitmap temp = new((int)Math.Ceiling(size.Width), (int)Math.Ceiling(size.Height));
+        using SKCanvas tempCanvas = new(temp);
+        foreach (PositionedText segment in textSegments)
+        {
+            paint.Typeface = segment.Typeface;
+            tempCanvas.DrawText(text, segment.Left, -paint.FontMetrics.Ascent, paint);
+        }
+
+        return temp;
+    }
+
     public void Dispose()
     {
         foreach (SKTypeface font in Fonts)
