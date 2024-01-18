@@ -68,6 +68,20 @@ internal class FontManager : IDisposable
         }
     }
 
+    public IEnumerable<PositionedText> GroupTextSingleLinePositioned(string fullText, SKPaint paint)
+    {
+        float left = 0;
+        foreach (TextAndFont item in GroupTextSingleLine(fullText))
+        {
+            paint.Typeface = item.Typeface;
+            float width = paint.MeasureText(item.Text);
+            SKFontMetrics metrics = paint.FontMetrics;
+            float height = metrics.Descent - metrics.Ascent;
+            yield return new PositionedText(item.Text, item.Typeface, width, left, height);
+            left += width;
+        }
+    }
+
     public IEnumerable<TextAndFont> GroupCharacters(string fullText)
     {
         return UnicodeCharacterSplit(fullText)
@@ -113,3 +127,8 @@ internal class FontManager : IDisposable
 }
 
 public record TextAndFont(string Text, SKTypeface Typeface);
+
+public record PositionedText(string Text, SKTypeface Typeface, float Width, float Left, float Height) : TextAndFont(Text, Typeface)
+{
+    public float Right { get; } = Left + Width;
+}

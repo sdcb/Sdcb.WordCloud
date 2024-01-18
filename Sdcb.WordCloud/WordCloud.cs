@@ -1,6 +1,9 @@
 ﻿using SkiaSharp;
 using System;
+using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Net.NetworkInformation;
 
 namespace Sdcb.WordClouds;
 
@@ -15,8 +18,6 @@ public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextIte
             IsAntialias = true,
         };
         using FontManager fontManager = new(FontFamilyNames);
-        using SKBitmap temp = new(Width, Height);
-        using SKCanvas tempCanvas = new(temp);
         using SKPaint tempClearer = new()
         {
             BlendMode = SKBlendMode.Src,
@@ -24,36 +25,55 @@ public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextIte
         };
         foreach (TextItem item in TextItems)
         {
-            tempCanvas.DrawRect(SKRect.Create(item.Rect.Size), tempClearer);
-            textPainter.TextSize = item.FontSize;
-            textPainter.Color = item.Color;
-            float x = 0;
-            foreach (TextAndFont segment in fontManager.GroupTextSingleLine(item.TextContent))
+            if (string.IsNullOrEmpty(item.TextContent))
             {
-                textPainter.Typeface = segment.Typeface;
-                tempCanvas.DrawText(item.TextContent, x, -textPainter.FontMetrics.Ascent, textPainter);
-                x += textPainter.MeasureText(segment.Text);
+                continue;
             }
 
+            textPainter.TextSize = item.FontSize;
+            textPainter.Color = item.Color;
+            using SKBitmap temp = CreateTextLayout(item.TextContent, fontManager, textPainter);
+
+            SKSize size = new(temp.Width, temp.Height);
+            SKPoint topLeft = new(item.Center.X - size.Width / 2, item.Center.Y - size.Height / 2);
+
             //TestWordCloudBitmap(temp, item.TextContent + ".png");
-            SKRect realRect = SKRect.Create(x, item.FontSize);
-            SKRect destRect = SKRect.Create(realRect.Size);
+            SKPoint realCenter = new(size.Width / 2, size.Height / 2);
             SKMatrix transform = SKMatrix.Concat(
-                SKMatrix.CreateTranslation(item.Rect.Location.X, item.Rect.Location.Y),
-                SKMatrix.CreateRotationDegrees(item.Rotate, 0, 0)
-                //SKMatrix.Identity
+                SKMatrix.CreateTranslation(topLeft.X, topLeft.Y),
+                SKMatrix.CreateRotationDegrees(item.Rotate, realCenter.X, realCenter.Y)
                 );
+
             canvas.SetMatrix(transform);
             canvas.DrawBitmap(temp, SKPoint.Empty);
             if (addBox)
             {
-                canvas.DrawRect(destRect, new SKPaint { Color = item.Color, Style = SKPaintStyle.Stroke, StrokeWidth = 1 });
+                SKRect destBox = SKRect.Create(size);
+                canvas.DrawRect(destBox, new SKPaint { Color = item.Color, Style = SKPaintStyle.Stroke, StrokeWidth = 1 });
             }
         }
         return result;
     }
 
-    private void TestWordCloudBitmap(SKBitmap bitmap, string fileName)
+    private static SKBitmap CreateTextLayout(string text, FontManager fontManager, SKPaint paint)
+    {
+        PositionedText[] textSegments = fontManager
+            .GroupTextSingleLinePositioned(text, paint)
+            .ToArray();
+        SKSize size = new(textSegments[^1].Right, textSegments.Max(x => x.Height));
+
+        SKBitmap temp = new((int)Math.Ceiling(size.Width), (int)Math.Ceiling(size.Height));
+        using SKCanvas tempCanvas = new(temp);
+        foreach (PositionedText segment in textSegments)
+        {
+            paint.Typeface = segment.Typeface;
+            tempCanvas.DrawText(text, segment.Left, -paint.FontMetrics.Ascent, paint);
+        }
+
+        return temp;
+    }
+
+    private static void TestWordCloudBitmap(SKBitmap bitmap, string fileName)
     {
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -67,4 +87,4 @@ public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextIte
     }
 }
 
-public record TextItem(string TextContent, float FontSize, SKColor Color, SKRect Rect, float Rotate);
+public record TextItem(string TextContent, float FontSize, SKColor Color, SKPoint Center, float Rotate);
