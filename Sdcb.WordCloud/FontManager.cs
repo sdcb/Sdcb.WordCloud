@@ -222,3 +222,14 @@ public record PositionedText(string Text, SKTypeface Typeface, float Width, floa
     /// </summary>
     public float Right { get; } = Left + Width;
 }
+
+public record PositionedTextGroup(PositionedText[] Texts)
+{
+    public readonly float Width = Texts.Length > 0 ? Texts[^1].Right : 0;
+
+    public readonly float Height = Texts.Max(x => x.Height);
+
+    public readonly SKSize Size = new(Texts.Length > 0 ? Texts[^1].Right : 0, Texts.Max(x => x.Height));
+
+    public readonly SKSizeI SizeI = new((int)Math.Ceiling(Texts.Length > 0 ? Texts[^1].Right : 0), (int)Math.Ceiling(Texts.Max(x => x.Height)));
+}

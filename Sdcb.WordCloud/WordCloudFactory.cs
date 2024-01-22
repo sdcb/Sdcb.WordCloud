@@ -1,5 +1,8 @@
 ﻿using SkiaSharp;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Sdcb.WordCloud2.Tests")]
 
@@ -7,76 +10,214 @@ namespace Sdcb.WordClouds;
 
 public static class WordCloudFactory
 {
-    public static SKBitmap Make(WordCloudOptions options)
+    public static WordCloud Make(WordCloudOptions options)
     {
-        SKBitmap result = new(options.Width, options.Height);
-        int[,] integral = new int[options.Height, options.Width];
+        IntegralMap integralMap = new(options.Width, options.Height);
         bool[,] cache = new bool[options.Height, options.Width];
         options.Mask?.FillMaskCache(cache);
-        UpdateIntegral(cache, integral);
+        integralMap.Update(cache);
 
         // init canvas
-        using SKCanvas canvas = new(result);
-        if (options.Background is not null)
-        {
-            if (options.Background.Width < options.Width || options.Background.Height < options.Height)
-            {
-                throw new ArgumentException("Background image size does not match the canvas size.");
-            }
-            canvas.DrawBitmap(options.Background, SKRect.Create(options.Width, options.Height));
-        }
-
         float fontSize = options.GetInitialFontSize();
-        using SKPaint paint = new()
-        {
-            IsAntialias = true,
-        };
-        foreach (WordFrequency word in options.WordFrequencies)
-        {
-            fontSize = options.FontSizeAccessor(new(word.Word, word.Frequency, fontSize));
-        }
+
+        using SKPaint fontPaintCache = new() { IsAntialias = false };
+        TextItem[] items = options.WordFrequencies
+            .Select(word =>
+            {
+                TextItem? item = null;
+                do
+                {
+                    fontSize = options.FontSizeAccessor(new(options.Random, word.Word, word.Frequency, fontSize));
+                    if (fontSize <= options.MinFontSize)
+                    {
+                        break;
+                    }
+                    item = CreateTextItem(options, integralMap, fontSize, cache, fontPaintCache, word);
+                } while (item is null);
+
+                return item!;
+            })
+            .Where(item => item is not null)
+            .ToArray();
+
         throw new NotImplementedException();
     }
 
-    internal unsafe static void UpdateIntegral(bool[,] cache, int[,] integral)
+    private static TextItem? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word)
     {
-        int height = cache.GetLength(0);
-        int width = cache.GetLength(1);
-        if (integral.GetLength(0) != height || integral.GetLength(1) != width)
+        using SKBitmap textLayout = options.FontManager.CreateTextLayout(word.Word, fontPaintCache);
+        WordCloudContext ctx = new(options.Random, word.Word, word.Frequency, fontSize);
+        foreach (SKPointI p in TraversePointsSequentially(options.Size, options.GetRandomStartPoint()))
         {
-            throw new ArgumentException("Cache size does not match the integral size.");
+            Dictionary<TextOrientations, SKRectI> rectDict = new(capacity: 2);
+            if (options.TextOrientation.HasFlag(TextOrientations.Horizontal))
+            {
+                rectDict[TextOrientations.Horizontal] = ExpandHorizontally(p, textLayout.Width, textLayout.Height);
+            }
+            if (options.TextOrientation.HasFlag(TextOrientations.Vertical))
+            {
+                rectDict[TextOrientations.Vertical] = ExpandVertically(p, textLayout.Width, textLayout.Height);
+            }
+
+            foreach (KeyValuePair<TextOrientations, SKRectI> kvp in rectDict)
+            {
+                TextOrientations orientation = kvp.Key;
+                SKRectI rect = kvp.Value;
+                if (rect.Right >= options.Width || rect.Bottom >= options.Height || rect.Left < 0 || rect.Top < 0)
+                {
+                    continue;
+                }
+                if (integralMap.GetSum(rect) > 0)
+                {
+                    continue;
+                }
+
+#pragma warning disable CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。
+                TextItem result = new(word.Word, fontSize, options.FontColorAccessor(ctx), p, orientation switch
+                {
+                    TextOrientations.Horizontal => 0,
+                    TextOrientations.Vertical => 90,
+                });
+#pragma warning restore CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。
+
+                FillCache(textLayout, rect, orientation, cache);
+                return result;
+            }
         }
 
-        fixed (bool* cachePtr = cache)
-        fixed (int* integralPtr = integral)
+        return null;
+    }
+
+    /// <summary>
+    /// Fills a cache array with boolean values representing the presence of alpha channel from
+    /// an SKBitmap image, considering the image's text orientation. The cache array is expected
+    /// to be large enough to accommodate the SKBitmap's size. For vertical text orientation, the
+    /// cache size is expected to have its width and height swapped relative to the SKBitmap size.
+    /// </summary>
+    /// <param name="bmp">The SKBitmap image with pixel data to transfer to the boolean cache.</param>
+    /// <param name="rect">The SKRectI defining the region within the cache to be filled. This is not 
+    /// the crop area from the bitmap but the rectangle's position in the cache.</param>
+    /// <param name="textOrientation">The text orientation of the bitmap, determining how the
+    /// pixel data will be transferred to the boolean cache.</param>
+    /// <param name="cache">The two-dimensional array to be filled with boolean values indicating presence
+    /// (true) or absence (false) of the alpha channel for each pixel in the SKBitmap.</param>
+    /// <exception cref="ArgumentException">Thrown when the provided SKBitmap is not of SKColorType.Bgra8888 color type,
+    /// or if the cache array is not big enough to contain the specified SKRectI region.</exception>
+    /// <remarks>
+    /// This method directly maps pixels from a SKBitmap into a boolean array ('cache'),
+    /// where a 'true' value indicates a non-transparent pixel (based on the alpha channel), and 
+    /// a 'false' value indicates a transparent pixel. The cache should be pre-allocated
+    /// and sized appropriately depending on the 'textOrientation' parameter -- it should either
+    /// match the SKBitmap's dimensions for horizontal text orientation or have its dimensions 
+    /// swapped for vertical text orientation. The bitmap must be Bgra8888, which supports an alpha channel.
+    /// </remarks>
+    internal static unsafe void FillCache(SKBitmap bmp, SKRectI rect, TextOrientations textOrientations, bool[,] cache)
+    {
+        // Check if bmp is Bgra8888
+        if (bmp.ColorType != SKColorType.Bgra8888)
         {
-            // 初始化第一个元素
-            integralPtr[0] = cachePtr[0] ? 1 : 0;
+            throw new ArgumentException("Bitmap must be of type Bgra8888.", nameof(bmp));
+        }
 
-            // 初始化第一行
-            for (int x = 1; x < width; x++)
-            {
-                integralPtr[x] = integralPtr[x - 1] + (cachePtr[x] ? 1 : 0);
-            }
+        int srcWidth = bmp.Width;
+        int srcHeight = bmp.Height;
+        int destHeight = cache.GetLength(0);
+        int destWidth = cache.GetLength(1);
 
-            // 初始化第一列
-            for (int y = 1; y < height; y++)
-            {
-                int idx = y * width;
-                integralPtr[idx] = integralPtr[idx - width] + (cachePtr[idx] ? 1 : 0);
-            }
+        // Check if the cache array is big enough to hold the rectangle
+        if (rect.Bottom > destHeight || rect.Right > destWidth)
+        {
+            throw new ArgumentException("The cache array is not big enough to hold the rectangle.", nameof(cache));
+        }
 
-            // 计算其余的积分图值
-            for (int y = 1; y < height; y++)
+        uint* src = (uint*)bmp.GetPixels();
+        fixed (bool* dest = cache)
+        {
+            if (textOrientations == TextOrientations.Horizontal)
             {
-                for (int x = 1; x < width; x++)
+                for (int y = rect.Top; y < rect.Bottom; ++y)
                 {
-                    int idx = y * width + x;
-                    // 当前点的积分值 = 左边的积分值 + 上边的积分值 - 左上角的积分值 + 当前点的值
-                    integralPtr[idx] = integralPtr[idx - 1] + integralPtr[idx - width]
-                                        - integralPtr[idx - width - 1] + (cachePtr[idx] ? 1 : 0);
+                    int srcRow = y * srcWidth;
+                    int destRow = (y - rect.Top) * destWidth;
+                    for (int x = rect.Left; x < rect.Right; ++x)
+                    {
+                        dest[destRow + x - rect.Left] = (src[srcRow + x] & 0xFF000000) > 0; // Use mask for Alpha channel
+                    }
+                }
+            }
+            else if (textOrientations == TextOrientations.Vertical)
+            {
+                for (int y = rect.Top; y < rect.Bottom; ++y)
+                {
+                    int srcRow = y * srcWidth;
+                    for (int x = rect.Left; x < rect.Right; ++x)
+                    {
+                        // Determine the new rotated position for the vertical cache
+                        int rotatedX = y - rect.Top;
+                        int rotatedY = rect.Right - x - 1;
+
+                        // Map the rotated position to the destination cache
+                        dest[rotatedY * destWidth + rotatedX] = (src[srcRow + x] & 0xFF000000) > 0;
+                    }
                 }
             }
         }
+    }
+
+    private static SKRectI ExpandHorizontally(SKPointI center, int width, int height)
+    {
+        int halfX = width / 2, otherHalfX = width - halfX;
+        int halfY = height / 2, otherHalfY = height - halfY;
+        return new(center.X - halfX, center.Y - halfY, center.X + otherHalfX, center.Y + otherHalfY);
+    }
+
+    private static SKRectI ExpandVertically(SKPointI center, int width, int height)
+    {
+        int halfX = height / 2, otherHalfY = height - halfX;
+        int halfY = width / 2, otherHalfX = width - halfY;
+        return new(center.X - halfX, center.Y - halfY, center.X + otherHalfX, center.Y + otherHalfY);
+    }
+
+    internal static IEnumerable<SKPointI> TraversePointsSequentially(SKSizeI maxSize, SKPointI startPoint)
+    {
+        if (maxSize == SKSizeI.Empty)
+        {
+            yield break;
+        }
+
+        // Ensure the start point is within bounds
+        if (startPoint.X < 0 || startPoint.X >= maxSize.Width ||
+            startPoint.Y < 0 || startPoint.Y >= maxSize.Height)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startPoint));
+        }
+
+        // Begin traversal at startPoint
+        SKPointI currPoint = startPoint;
+
+        // Continue indefinitely until we loop back to the start point
+        do
+        {
+            // Yield the current point
+            yield return currPoint;
+
+            // Move to the next point
+            currPoint.X++;
+
+            // If we reach the end of the row, move to the next row
+            if (currPoint.X >= maxSize.Width)
+            {
+                currPoint.X = 0;
+                currPoint.Y++;
+            }
+
+            // If we reach the end of the columns, start back at the top
+            if (currPoint.Y >= maxSize.Height)
+            {
+                currPoint.Y = 0;
+            }
+
+            // If after wrapping around we're at the start point, stop traversing
+        } while (currPoint.X != startPoint.X || currPoint.Y != startPoint.Y);
     }
 }

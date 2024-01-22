@@ -3,7 +3,7 @@ using SkiaSharp;
 using System.Buffers.Binary;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Sdcb.WordCloud2.Tests;
+namespace Sdcb.WordClouds.Tests;
 
 public class MaskToCacheTest
 {

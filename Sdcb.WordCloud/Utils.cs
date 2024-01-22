@@ -1,11 +1,27 @@
-﻿using SkiaSharp;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Sdcb.WordClouds;
 
-internal class Utils
+internal static class Utils
 {
-    static readonly Random _r = new();
+    public static T[] Convert2DTo1D<T>(T[,] data)
+    {
+        int rows = data.GetLength(0);
+        int columns = data.GetLength(1);
+        T[] flatArray = new T[rows * columns];
 
-    public static SKColor RandomColor => new SKColor((byte)_r.Next(0, 256), (byte)_r.Next(0, 256), (byte)_r.Next(0, 256));
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < columns; j++)
+            {
+                flatArray[i * columns + j] = data[i, j];
+            }
+        }
+
+        return flatArray;
+    }
 }

@@ -3,7 +3,7 @@ using SkiaSharp;
 using System.Diagnostics;
 using Xunit.Abstractions;
 
-namespace Sdcb.WordCloud2.Tests;
+namespace Sdcb.WordClouds.Tests;
 
 public class ToBitmapTest
 {

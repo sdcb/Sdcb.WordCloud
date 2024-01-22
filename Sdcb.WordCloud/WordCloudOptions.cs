@@ -1,14 +1,13 @@
 ﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Sdcb.WordClouds;
 
-public record WordCloudOptions(IEnumerable<WordFrequency> WordFrequencies)
+public record WordCloudOptions(int Width, int Height, IEnumerable<WordFrequency> WordFrequencies)
 {
-    public int Width { get; set; } = 800;
-
-    public int Height { get; set; } = 600;
+    public readonly SKSizeI Size = new(Width, Height);
 
     public float? InitialFontSize { get; set; }
 
@@ -16,7 +15,9 @@ public record WordCloudOptions(IEnumerable<WordFrequency> WordFrequencies)
 
     public float FontStep { get; set; } = 1.0f;
 
-    public FontColorAccessor FontColorAccessor { get; set; } = _ => Utils.RandomColor;
+    public float MinFontSize { get; set; } = 4.0f;
+
+    public FontColorAccessor FontColorAccessor { get; set; } = ctx => new((byte)ctx.Random.Next(0, 256), (byte)ctx.Random.Next(0, 256), (byte)ctx.Random.Next(0, 256));
 
     public FontSizeAccessor FontSizeAccessor { get; set; } = ctx => (float)Math.Min(ctx.CurrentFontSize, 100 * Math.Log10(ctx.Frequency + 100));
 
@@ -25,10 +26,26 @@ public record WordCloudOptions(IEnumerable<WordFrequency> WordFrequencies)
     public MaskOptions? Mask { get; set; }
 
     public FontManager FontManager { get; set; } = new();
+
+    public Random Random { get; set; } = new();
+
+    public virtual SKPointI GetRandomStartPoint()
+    {
+        return new(Random.Next(0, Width), Random.Next(0, Height));
+    }
+
+    public TextOrientations TextOrientation { get; set; } = TextOrientations.Horizontal | TextOrientations.Vertical;
 }
 
 public delegate float FontSizeAccessor(WordCloudContext context);
 
 public delegate SKColor FontColorAccessor(WordCloudContext context);
 
-public record WordCloudContext(string Word, int Frequency, float CurrentFontSize) : WordFrequency(Word, Frequency);
+public record WordCloudContext(Random Random, string Word, int Frequency, float CurrentFontSize) : WordFrequency(Word, Frequency);
+
+[Flags]
+public enum TextOrientations
+{
+    Horizontal = 0x01,
+    Vertical = 0x10,
+}
