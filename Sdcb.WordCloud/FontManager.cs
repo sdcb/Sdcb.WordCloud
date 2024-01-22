@@ -6,24 +6,57 @@ using System.Text;
 
 namespace Sdcb.WordClouds;
 
-internal class FontManager : IDisposable
+/// <summary>
+/// Manages the fonts used in the word cloud.
+/// </summary>
+public class FontManager : IDisposable
 {
+    /// <summary>
+    /// Gets the array of SKTypeface fonts.
+    /// </summary>
     public SKTypeface[] Fonts { get; }
-    public Dictionary<int, SKTypeface> Mapping { get; } = new();
 
-    public FontManager(params SKTypeface[] fonts)
+    public bool IsOwned { get; }
+
+    private readonly Dictionary<int, SKTypeface> _mapping = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FontManager"/> class.
+    /// </summary>
+    public FontManager()
     {
-        Fonts = fonts;
+        Fonts = Array.Empty<SKTypeface>();
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FontManager"/> class with the specified fonts.
+    /// </summary>
+    /// <remarks><see cref="FontManager"/> will take the ownership of <see cref="SKTypeface"/> and in charge of dispose.</remarks>
+    /// <param name="fonts">The SKTypeface fonts.</param>
+    public FontManager(SKTypeface[] fonts, bool isOwned = true)
+    {
+        Fonts = fonts;
+        IsOwned = isOwned;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FontManager"/> class with the specified font family names.
+    /// </summary>
+    /// <param name="fontFamilyNames">The font family names.</param>
     public FontManager(params string[] fontFamilyNames)
     {
         Fonts = fontFamilyNames.Select(SKTypeface.FromFamilyName).ToArray();
+        IsOwned = true;
     }
 
+    /// <summary>
+    /// Matches the font for the specified codepoint.
+    /// </summary>
+    /// <param name="codepoint">The codepoint.</param>
+    /// <returns>The matched SKTypeface font.</returns>
     public SKTypeface MatchFont(int codepoint)
     {
-        if (Mapping.TryGetValue(codepoint, out SKTypeface? val))
+        if (_mapping.TryGetValue(codepoint, out SKTypeface? val))
         {
             return val;
         }
@@ -32,16 +65,21 @@ internal class FontManager : IDisposable
         {
             if (font.ContainsGlyph(codepoint))
             {
-                Mapping[codepoint] = font;
+                _mapping[codepoint] = font;
                 return font;
             }
         }
 
         SKTypeface final = SKFontManager.Default.MatchCharacter(codepoint);
-        Mapping[codepoint] = final;
+        _mapping[codepoint] = final;
         return final;
     }
 
+    /// <summary>
+    /// Groups the text into single-line segments with corresponding fonts.
+    /// </summary>
+    /// <param name="fullText">The full text.</param>
+    /// <returns>An enumerable of <see cref="TextAndFont"/> representing the grouped text and fonts.</returns>
     public IEnumerable<TextAndFont> GroupTextSingleLine(string fullText)
     {
         SKTypeface lastfont = null!;
@@ -68,6 +106,12 @@ internal class FontManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Groups the text into single-line segments with corresponding fonts and positions.
+    /// </summary>
+    /// <param name="fullText">The full text.</param>
+    /// <param name="paint">The SKPaint object used for measuring text.</param>
+    /// <returns>An enumerable of <see cref="PositionedText"/> representing the grouped text, fonts, and positions.</returns>
     public IEnumerable<PositionedText> GroupTextSingleLinePositioned(string fullText, SKPaint paint)
     {
         float left = 0;
@@ -82,12 +126,22 @@ internal class FontManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Groups the characters of the text with corresponding fonts.
+    /// </summary>
+    /// <param name="fullText">The full text.</param>
+    /// <returns>An enumerable of <see cref="TextAndFont"/> representing the grouped characters and fonts.</returns>
     public IEnumerable<TextAndFont> GroupCharacters(string fullText)
     {
         return UnicodeCharacterSplit(fullText)
             .Select(x => new TextAndFont(Char.ConvertFromUtf32(x), MatchFont(x)));
     }
 
+    /// <summary>
+    /// Splits the input string into Unicode characters.
+    /// </summary>
+    /// <param name="input">The input string.</param>
+    /// <returns>An enumerable of Unicode codepoints.</returns>
     public static IEnumerable<int> UnicodeCharacterSplit(string input)
     {
         for (var i = 0; i < input.Length; ++i)
@@ -117,6 +171,12 @@ internal class FontManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Creates a text layout bitmap for the specified text using the given paint.
+    /// </summary>
+    /// <param name="text">The text.</param>
+    /// <param name="paint">The SKPaint object used for drawing text.</param>
+    /// <returns>The created SKBitmap object representing the text layout.</returns>
     public SKBitmap CreateTextLayout(string text, SKPaint paint)
     {
         PositionedText[] textSegments = GroupTextSingleLinePositioned(text, paint)
@@ -134,8 +194,12 @@ internal class FontManager : IDisposable
         return temp;
     }
 
+    /// <summary>
+    /// Disposes the FontManager and releases the resources associated with the SKTypeface fonts.
+    /// </summary>
     public void Dispose()
     {
+        if (!IsOwned) return;
         foreach (SKTypeface font in Fonts)
         {
             font.Dispose();
@@ -143,9 +207,18 @@ internal class FontManager : IDisposable
     }
 }
 
+/// <summary>
+/// Represents the text and font used in the word cloud.
+/// </summary>
 public record TextAndFont(string Text, SKTypeface Typeface);
 
+/// <summary>
+/// Represents the positioned text used in the word cloud.
+/// </summary>
 public record PositionedText(string Text, SKTypeface Typeface, float Width, float Left, float Height) : TextAndFont(Text, Typeface)
 {
+    /// <summary>
+    /// Gets the right position of the text.
+    /// </summary>
     public float Right { get; } = Left + Width;
 }

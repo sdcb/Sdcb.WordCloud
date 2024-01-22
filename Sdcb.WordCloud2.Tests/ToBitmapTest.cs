@@ -22,7 +22,7 @@ public class ToBitmapTest
     [Fact]
     public void TestWordCloudCreation_SimpleCase()
     {
-        var wordCloud = new WordCloud(200, 100, ["Arial"],
+        var wordCloud = new WordCloud(200, 100, new FontManager(["Arial"]),
         [
             new TextItem("Hello", 24, SKColors.Black, new SKPoint(100, 30), 0)
         ]);
@@ -33,7 +33,7 @@ public class ToBitmapTest
     [Fact]
     public void TestWordCloudCreation_MultipleWords()
     {
-        var wordCloud = new WordCloud(400, 200, ["Times New Roman"],
+        var wordCloud = new WordCloud(400, 200, new FontManager(["Times New Roman"]),
         [
             new TextItem("Multiple", 30, SKColors.Blue, new SKPoint(200, 35), 0),
             new TextItem("Words", 30, SKColors.Red, new SKPoint(200, 95), 0)
@@ -49,7 +49,7 @@ public class ToBitmapTest
     [InlineData(90)]
     public void TestWordCloudCreation_RotatedText(float rotate)
     {
-        var wordCloud = new WordCloud(300, 300, ["Courier New"],
+        var wordCloud = new WordCloud(300, 300, new FontManager(["Courier New"]),
         [
             new TextItem("这是参考文字", 24, SKColors.Green, new SKPoint(150, 45), 0),
             new TextItem("Rotated", 24, SKColors.Red, new SKPoint(165, 120), rotate)
@@ -61,7 +61,7 @@ public class ToBitmapTest
     [Fact]
     public void TestWordCloudCreation_PerfTest()
     {
-        WordCloud wordCloud = new (800, 600, ["Courier New"],
+        WordCloud wordCloud = new (800, 600, new FontManager(["Courier New"]),
         [
             new TextItem(".NET", 50, SKColors.Blue, new SKPoint(400, 60), 90),
             new TextItem("C#", 46, SKColors.Purple, new SKPoint(200, 100), 0),

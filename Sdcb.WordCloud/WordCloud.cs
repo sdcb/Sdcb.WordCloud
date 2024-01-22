@@ -1,17 +1,17 @@
 ﻿using SkiaSharp;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Sdcb.WordClouds;
 
-public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextItem[] TextItems)
+public record WordCloud(int Width, int Height, FontManager FontManager, TextItem[] TextItems)
 {
     public SKBitmap ToBitmap(bool addBox = false)
     {
         SKBitmap result = new(Width, Height);
         using SKCanvas canvas = new(result);
         using SKPaint textPainter = new() { IsAntialias = true, };
-        using FontManager fontManager = new(FontFamilyNames);
         foreach (TextItem item in TextItems)
         {
             if (string.IsNullOrEmpty(item.TextContent))
@@ -21,7 +21,7 @@ public record WordCloud(int Width, int Height, string[] FontFamilyNames, TextIte
 
             textPainter.TextSize = item.FontSize;
             textPainter.Color = item.Color;
-            using SKBitmap temp = fontManager.CreateTextLayout(item.TextContent, textPainter);
+            using SKBitmap temp = FontManager.CreateTextLayout(item.TextContent, textPainter);
 
             SKSize size = new(temp.Width, temp.Height);
             SKPoint topLeft = new(item.Center.X - size.Width / 2, item.Center.Y - size.Height / 2);

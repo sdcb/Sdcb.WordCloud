@@ -23,6 +23,8 @@ public record WordCloudOptions(IEnumerable<WordFrequency> WordFrequencies)
     public SKBitmap? Background { get; set; }
 
     public MaskOptions? Mask { get; set; }
+
+    public FontManager FontManager { get; set; } = new();
 }
 
 public delegate float FontSizeAccessor(WordCloudContext context);
