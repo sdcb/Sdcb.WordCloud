@@ -7,7 +7,7 @@ namespace Sdcb.WordClouds;
 
 public record WordCloud(int Width, int Height, FontManager FontManager, TextItem[] TextItems, SKBitmap? Background = null)
 {
-    public SKBitmap ToBitmap(bool addBox = false)
+    public SKBitmap ToSKBitmap(bool addBox = false)
     {
         SKBitmap result = new(Width, Height);
         using SKCanvas canvas = new(result);

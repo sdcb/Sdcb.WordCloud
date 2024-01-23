@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
-namespace Sdcb.WordCloud2.Tests;
+namespace Sdcb.WordClouds.Tests;
 
 public class FillCacheTest
 {

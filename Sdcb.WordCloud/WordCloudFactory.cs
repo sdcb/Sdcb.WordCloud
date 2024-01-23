@@ -1,6 +1,5 @@
 ﻿using SkiaSharp;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -25,14 +24,15 @@ public static class WordCloudFactory
             .Select(word =>
             {
                 TextItem? item = null;
+                fontSize = options.FontSizeAccessor(new(options.Random, word.Word, word.Frequency, fontSize));
                 do
                 {
-                    fontSize = options.FontSizeAccessor(new(options.Random, word.Word, word.Frequency, fontSize));
                     if (fontSize <= options.MinFontSize)
                     {
                         break;
                     }
                     item = CreateTextItem(options, integralMap, fontSize, cache, fontPaintCache, word);
+                    fontSize -= options.FontStep;
                 } while (item is null);
 
                 return item!;
@@ -40,11 +40,12 @@ public static class WordCloudFactory
             .Where(item => item is not null)
             .ToArray();
 
-        throw new NotImplementedException();
+        return new WordCloud(options.Width, options.Height, options.FontManager, items, options.Background);
     }
 
     private static TextItem? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word)
     {
+        fontPaintCache.TextSize = fontSize;
         using SKBitmap textLayout = options.FontManager.CreateTextLayout(word.Word, fontPaintCache);
         WordCloudContext ctx = new(options.Random, word.Word, word.Frequency, fontSize);
         foreach (SKPointI p in TraversePointsSequentially(options.Size, options.GetRandomStartPoint()))
@@ -168,18 +169,26 @@ public static class WordCloudFactory
         }
     }
 
-    private static SKRectI ExpandHorizontally(SKPointI center, int width, int height)
+    internal static SKRectI ExpandHorizontally(SKPointI center, int width, int height)
     {
-        int halfX = width / 2, otherHalfX = width - halfX;
-        int halfY = height / 2, otherHalfY = height - halfY;
-        return new(center.X - halfX, center.Y - halfY, center.X + otherHalfX, center.Y + otherHalfY);
+        int halfWidth = width / 2;
+        int otherHalfWidth = width - halfWidth;
+        int halfHeight = height / 2;
+        int otherHalfHeight = height - halfHeight;
+        // 宽度在水平方向上分布，因此需要调整中心点的X坐标。
+        // 高度在垂直方向上均匀分布，因此中心点的Y坐标上下均匀分布halfHeight。
+        return new SKRectI(center.X - halfWidth, center.Y - halfHeight, center.X + otherHalfWidth, center.Y + otherHalfHeight);
     }
 
-    private static SKRectI ExpandVertically(SKPointI center, int width, int height)
+    internal static SKRectI ExpandVertically(SKPointI center, int width, int height)
     {
-        int halfX = height / 2, otherHalfY = height - halfX;
-        int halfY = width / 2, otherHalfX = width - halfY;
-        return new(center.X - halfX, center.Y - halfY, center.X + otherHalfX, center.Y + otherHalfY);
+        int halfHeight = height / 2;
+        int otherHalfHeight = height - halfHeight;
+        int halfWidth = width / 2;
+        int otherHalfWidth = width - halfWidth;
+        // 高度在垂直方向上分布，因此需要调整中心点的Y坐标。
+        // 宽度在水平方向上均匀分布，因此中心点的X坐标左右均匀分布halfWidth。
+        return new SKRectI(center.X - halfWidth, center.Y - halfHeight, center.X + otherHalfWidth, center.Y + otherHalfHeight);
     }
 
     internal static IEnumerable<SKPointI> TraversePointsSequentially(SKSizeI maxSize, SKPointI startPoint)

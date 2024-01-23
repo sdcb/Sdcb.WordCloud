@@ -80,7 +80,7 @@ public class UpdateIntegralTest
             { false, true, true, false },
             { true, false, false, true }
         };
-        IntegralMap integral = new (3, 4);
+        IntegralMap integral = new (4, 3);
         int[] expectedIntegralFlat = 
         [
             1, 1, 2, 2,

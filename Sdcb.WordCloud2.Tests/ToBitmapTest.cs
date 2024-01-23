@@ -90,14 +90,14 @@ public class ToBitmapTest
         for (int i = 0; i < times; ++i)
         {
             Stopwatch sw = Stopwatch.StartNew();
-            using SKBitmap bmp = wordCloud.ToBitmap();
+            using SKBitmap bmp = wordCloud.ToSKBitmap();
             _console.WriteLine($"ToBitmap elapsed={sw.ElapsedMilliseconds}ms");
             acc += (int)sw.ElapsedMilliseconds;
         }
         _console.WriteLine($"Average elapsed={acc / times}ms");
 
         {
-            using SKBitmap bmp = wordCloud.ToBitmap(addBox: true);
+            using SKBitmap bmp = wordCloud.ToSKBitmap(addBox: true);
             using SKImage image = SKImage.FromBitmap(bmp);
             string dest = Path.Combine(OutputDirectory, "TestWordCloudCreation_PerfTest.png");
             _console.WriteLine($"dest: {dest}");
@@ -107,7 +107,7 @@ public class ToBitmapTest
 
     private static void TestWordCloudBitmap(WordCloud wordCloud, string fileName)
     {
-        using SKBitmap bitmap = wordCloud.ToBitmap(addBox: true);
+        using SKBitmap bitmap = wordCloud.ToSKBitmap(addBox: true);
 
         string filePath = Path.Combine(OutputDirectory, fileName);
         using var image = SKImage.FromBitmap(bitmap);
