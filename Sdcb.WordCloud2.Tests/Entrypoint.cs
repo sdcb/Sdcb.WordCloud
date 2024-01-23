@@ -14,17 +14,30 @@ public class Entrypoint
         {
             Directory.CreateDirectory(_integratedTestOutput);
         }
+        Console.WriteLine($"Please select: ");
+        Console.WriteLine($"1: most simple demo");
+        Console.WriteLine($"2: demo with mask");
+        string id = Console.ReadLine()!;
 
-        var options = new WordCloudOptions(800, 600, MakeDemoFrquency()) { Random = new Random(1) };
+        WordCloudOptions options = id switch
+        {
+            "1" => new(800, 600, MakeDemoFrequency()) { Random = new Random(1) }, 
+            "2" => new(900, 900, MakeDemoFrequency()) 
+            { 
+                Random = new Random(1),
+                Mask = MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(@"C:\Users\sdfly\source\repos\Sdcb.WordCloud\Sdcb.WordClouds.Tests\alice_mask.png"), SKColors.White)
+            },
+            _ => throw new NotImplementedException(),
+        };
         Stopwatch sw = Stopwatch.StartNew();
         WordCloud cloud = WordCloudFactory.Make(options);
         Console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
-        using SKBitmap bmp = cloud.ToSKBitmap(addBox: true);
+        using SKBitmap bmp = cloud.ToSKBitmap(addBox: false);
         Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
         bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png")));
     }
 
-    static IEnumerable<WordFrequency> MakeDemoFrquency()
+    static IEnumerable<WordFrequency> MakeDemoFrequency()
     {
         string text = """
             459	cloud

@@ -49,22 +49,14 @@ public static class WordCloudFactory
     private static TextItem? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word)
     {
         fontPaintCache.TextSize = fontSize;
-        PositionedTextGroup group = new (options.FontManager.GroupTextSingleLinePositioned(word.Word, fontPaintCache).ToArray());
+        PositionedTextGroup group = new(options.FontManager.GroupTextSingleLinePositioned(word.Word, fontPaintCache).ToArray());
         WordCloudContext ctx = new(options.Random, word.Word, word.Frequency, fontSize);
         foreach (SKPointI p in TraversePointsSequentially(options.Size, options.GetRandomStartPoint()))
         {
-            List<(TextOrientations, SKRectI)> supportedAngles = new(capacity: 2);
             if (options.TextOrientation.HasFlag(TextOrientations.Horizontal))
             {
-                supportedAngles.Add((TextOrientations.Horizontal, ExpandHorizontally(p, (int)group.Width, (int)group.Height)));
-            }
-            if (options.TextOrientation.HasFlag(TextOrientations.Vertical))
-            {
-                supportedAngles.Add((TextOrientations.Vertical, ExpandVertically(p, (int)group.Width, (int)group.Height)));
-            }
-
-            foreach ((TextOrientations orientation, SKRectI rect) in supportedAngles)
-            {
+                SKRectI rect = ExpandHorizontally(p, group.SizeI.Width, group.SizeI.Height);
+                TextOrientations orientation = TextOrientations.Horizontal;
                 if (rect.Right >= options.Width || rect.Bottom >= options.Height || rect.Left < 0 || rect.Top < 0)
                 {
                     continue;
@@ -74,22 +66,40 @@ public static class WordCloudFactory
                     continue;
                 }
 
-#pragma warning disable CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。
-                TextItem result = new(word.Word, fontSize, options.FontColorAccessor(ctx), p, orientation switch
+                return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, p, rect, orientation);
+            }
+            if (options.TextOrientation.HasFlag(TextOrientations.Vertical))
+            {
+                SKRectI rect = ExpandHorizontally(p, group.SizeI.Width, group.SizeI.Height);
+                TextOrientations orientation = TextOrientations.Vertical;
+                if (rect.Right >= options.Width || rect.Bottom >= options.Height || rect.Left < 0 || rect.Top < 0)
                 {
-                    TextOrientations.Horizontal => 0,
-                    TextOrientations.Vertical => 90,
-                });
-#pragma warning restore CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。
+                    continue;
+                }
+                if (integralMap.GetSum(rect) > 0)
+                {
+                    continue;
+                }
 
-                using SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);
-                FillCache(textLayout, orientation, cache, rect);
-                integralMap.Update(cache);
-                return result;
+                return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, p, rect, orientation);
             }
         }
 
         return null;
+    }
+
+    private static TextItem FillAndUpdate(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word, PositionedTextGroup group, WordCloudContext ctx, SKPointI p, SKRectI rect, TextOrientations orientation)
+    {
+#pragma warning disable CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。
+        TextItem result = new(word.Word, fontSize, options.FontColorAccessor(ctx), p, orientation switch
+        {
+            TextOrientations.Horizontal => 0,
+            TextOrientations.Vertical => 90,
+        });
+        SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);
+        FillCache(textLayout, orientation, cache, rect);
+        integralMap.Update(cache);
+        return result;
     }
 
     /// <summary>
@@ -192,6 +202,36 @@ public static class WordCloudFactory
         // 高度在垂直方向上分布，因此需要调整中心点的Y坐标。
         // 宽度在水平方向上均匀分布，因此中心点的X坐标左右均匀分布halfWidth。
         return new SKRectI(center.X - halfWidth, center.Y - halfHeight, center.X + otherHalfWidth, center.Y + otherHalfHeight);
+    }
+
+    internal static (TextOrientations orientations, SKRectI rect) FindSuitableOrietationRect(
+        IEnumerable<SKPointI> source,
+        SKSizeI rectSize,
+        TextOrientations allowedOrientations,
+        IntegralMap integralMap)
+    {
+        foreach (SKPointI p in source)
+        {
+            if (allowedOrientations.HasFlag(TextOrientations.Horizontal))
+            {
+                SKRectI rect = ExpandHorizontally(p, rectSize.Width, rectSize.Height);
+                TextOrientations orientation = TextOrientations.Horizontal;
+                if (rect.Right < integralMap.Width && rect.Bottom < integralMap.Height && rect.Left >= 0 && rect.Top >= 0 && integralMap.GetSum(rect) <= 0)
+                {
+                    return (orientation, rect);
+                }
+            }
+            if (allowedOrientations.HasFlag(TextOrientations.Vertical))
+            {
+                SKRectI rect = ExpandHorizontally(p, rectSize.Width, rectSize.Height);
+                TextOrientations orientation = TextOrientations.Vertical;
+                if (rect.Right < integralMap.Width && rect.Bottom < integralMap.Height && rect.Left >= 0 && rect.Top >= 0 && integralMap.GetSum(rect) <= 0)
+                {
+                    return (orientation, rect);
+                }
+            }
+        }
+        return (default, SKRectI.Empty);
     }
 
     internal static IEnumerable<SKPointI> TraversePointsSequentially(SKSizeI maxSize, SKPointI startPoint)

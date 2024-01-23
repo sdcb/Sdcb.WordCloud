@@ -53,15 +53,15 @@ internal record IntegralMap(int Width, int Height)
 
     public int GetSum(SKRectI rect)
     {
-        if (rect.Left < 0 || rect.Top < 0 || rect.Right >= Width || rect.Bottom >= Height)
-        {
-            throw new ArgumentOutOfRangeException(nameof(rect));
-        }
-
         int left = rect.Left;
         int top = rect.Top;
         int right = rect.Right;
         int bottom = rect.Bottom;
+
+        if (left < 0 || top < 0 || right >= Width || bottom >= Height)
+        {
+            throw new ArgumentOutOfRangeException(nameof(rect));
+        }
 
         int sum = _integral[bottom, right];
         if (left > 0)
