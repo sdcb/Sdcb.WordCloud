@@ -1,30 +1,30 @@
 ﻿using Sdcb.WordClouds;
 using SkiaSharp;
+using System.Diagnostics;
 
 namespace Sdcb.WordClouds.Tests;
 
-public class IntegratedTest
+public class Entrypoint
 {
-    readonly string _integratedTestOutput = "IntegratedTestOutput";
+    static readonly string _integratedTestOutput = "IntegratedTestOutput";
 
-    public IntegratedTest()
+    static void Main()
     {
         if (!Directory.Exists(_integratedTestOutput))
         {
             Directory.CreateDirectory(_integratedTestOutput);
         }
-    }
 
-    [Fact]
-    public void Test()
-    {
-        var options = new WordCloudOptions(800, 600, MakeDemoFrquency().Take(4)) { Random = new Random(1) };
+        var options = new WordCloudOptions(800, 600, MakeDemoFrquency()) { Random = new Random(1) };
+        Stopwatch sw = Stopwatch.StartNew();
         WordCloud cloud = WordCloudFactory.Make(options);
+        Console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
         using SKBitmap bmp = cloud.ToSKBitmap(addBox: true);
+        Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
         bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png")));
     }
 
-    private IEnumerable<WordFrequency> MakeDemoFrquency()
+    static IEnumerable<WordFrequency> MakeDemoFrquency()
     {
         string text = """
             459	cloud

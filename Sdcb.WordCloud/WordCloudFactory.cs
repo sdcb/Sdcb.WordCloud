@@ -32,7 +32,10 @@ public static class WordCloudFactory
                         break;
                     }
                     item = CreateTextItem(options, integralMap, fontSize, cache, fontPaintCache, word);
-                    fontSize -= options.FontStep;
+                    if (item is null)
+                    {
+                        fontSize -= options.FontStep;
+                    }
                 } while (item is null);
 
                 return item!;
@@ -46,24 +49,22 @@ public static class WordCloudFactory
     private static TextItem? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word)
     {
         fontPaintCache.TextSize = fontSize;
-        using SKBitmap textLayout = options.FontManager.CreateTextLayout(word.Word, fontPaintCache);
+        PositionedTextGroup group = new (options.FontManager.GroupTextSingleLinePositioned(word.Word, fontPaintCache).ToArray());
         WordCloudContext ctx = new(options.Random, word.Word, word.Frequency, fontSize);
         foreach (SKPointI p in TraversePointsSequentially(options.Size, options.GetRandomStartPoint()))
         {
-            Dictionary<TextOrientations, SKRectI> rectDict = new(capacity: 2);
+            List<(TextOrientations, SKRectI)> supportedAngles = new(capacity: 2);
             if (options.TextOrientation.HasFlag(TextOrientations.Horizontal))
             {
-                rectDict[TextOrientations.Horizontal] = ExpandHorizontally(p, textLayout.Width, textLayout.Height);
+                supportedAngles.Add((TextOrientations.Horizontal, ExpandHorizontally(p, (int)group.Width, (int)group.Height)));
             }
             if (options.TextOrientation.HasFlag(TextOrientations.Vertical))
             {
-                rectDict[TextOrientations.Vertical] = ExpandVertically(p, textLayout.Width, textLayout.Height);
+                supportedAngles.Add((TextOrientations.Vertical, ExpandVertically(p, (int)group.Width, (int)group.Height)));
             }
 
-            foreach (KeyValuePair<TextOrientations, SKRectI> kvp in rectDict)
+            foreach ((TextOrientations orientation, SKRectI rect) in supportedAngles)
             {
-                TextOrientations orientation = kvp.Key;
-                SKRectI rect = kvp.Value;
                 if (rect.Right >= options.Width || rect.Bottom >= options.Height || rect.Left < 0 || rect.Top < 0)
                 {
                     continue;
@@ -81,7 +82,9 @@ public static class WordCloudFactory
                 });
 #pragma warning restore CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。
 
+                using SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);
                 FillCache(textLayout, orientation, cache, rect);
+                integralMap.Update(cache);
                 return result;
             }
         }

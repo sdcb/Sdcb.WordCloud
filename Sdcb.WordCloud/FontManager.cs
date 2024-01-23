@@ -179,19 +179,8 @@ public class FontManager : IDisposable
     /// <returns>The created SKBitmap object representing the text layout.</returns>
     public SKBitmap CreateTextLayout(string text, SKPaint paint)
     {
-        PositionedText[] textSegments = GroupTextSingleLinePositioned(text, paint)
-            .ToArray();
-        SKSize size = new(textSegments[^1].Right, textSegments.Max(x => x.Height));
-
-        SKBitmap temp = new((int)Math.Ceiling(size.Width), (int)Math.Ceiling(size.Height));
-        using SKCanvas tempCanvas = new(temp);
-        foreach (PositionedText segment in textSegments)
-        {
-            paint.Typeface = segment.Typeface;
-            tempCanvas.DrawText(text, segment.Left, -paint.FontMetrics.Ascent, paint);
-        }
-
-        return temp;
+        PositionedTextGroup group = new(GroupTextSingleLinePositioned(text, paint).ToArray());
+        return group.CreateTextLayout(paint);
     }
 
     /// <summary>
@@ -232,4 +221,17 @@ public record PositionedTextGroup(PositionedText[] Texts)
     public readonly SKSize Size = new(Texts.Length > 0 ? Texts[^1].Right : 0, Texts.Max(x => x.Height));
 
     public readonly SKSizeI SizeI = new((int)Math.Ceiling(Texts.Length > 0 ? Texts[^1].Right : 0), (int)Math.Ceiling(Texts.Max(x => x.Height)));
+
+    public SKBitmap CreateTextLayout(SKPaint paint)
+    {
+        SKBitmap temp = new(SizeI.Width, SizeI.Height);
+        using SKCanvas tempCanvas = new(temp);
+        foreach (PositionedText segment in Texts)
+        {
+            paint.Typeface = segment.Typeface;
+            tempCanvas.DrawText(segment.Text, segment.Left, -paint.FontMetrics.Ascent, paint);
+        }
+
+        return temp;
+    }
 }
