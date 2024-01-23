@@ -80,7 +80,7 @@ public static class WordCloudFactory
                 });
 #pragma warning restore CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。
 
-                FillCache(textLayout, rect, orientation, cache);
+                FillCache(textLayout, orientation, cache, rect);
                 return result;
             }
         }
@@ -95,11 +95,11 @@ public static class WordCloudFactory
     /// cache size is expected to have its width and height swapped relative to the SKBitmap size.
     /// </summary>
     /// <param name="bmp">The SKBitmap image with pixel data to transfer to the boolean cache.</param>
-    /// <param name="rect">The SKRectI defining the region within the cache to be filled. This is not 
+    /// <param name="destRect">The SKRectI defining the region within the cache to be filled. This is not 
     /// the crop area from the bitmap but the rectangle's position in the cache.</param>
     /// <param name="textOrientation">The text orientation of the bitmap, determining how the
     /// pixel data will be transferred to the boolean cache.</param>
-    /// <param name="cache">The two-dimensional array to be filled with boolean values indicating presence
+    /// <param name="dest">The two-dimensional array to be filled with boolean values indicating presence
     /// (true) or absence (false) of the alpha channel for each pixel in the SKBitmap.</param>
     /// <exception cref="ArgumentException">Thrown when the provided SKBitmap is not of SKColorType.Bgra8888 color type,
     /// or if the cache array is not big enough to contain the specified SKRectI region.</exception>
@@ -111,7 +111,7 @@ public static class WordCloudFactory
     /// match the SKBitmap's dimensions for horizontal text orientation or have its dimensions 
     /// swapped for vertical text orientation. The bitmap must be Bgra8888, which supports an alpha channel.
     /// </remarks>
-    internal static unsafe void FillCache(SKBitmap bmp, SKRectI rect, TextOrientations textOrientations, bool[,] cache)
+    internal static unsafe void FillCache(SKBitmap bmp, TextOrientations textOrientations, bool[,] dest, SKRectI destRect)
     {
         // Check if bmp is Bgra8888
         if (bmp.ColorType != SKColorType.Bgra8888)
@@ -121,43 +121,47 @@ public static class WordCloudFactory
 
         int srcWidth = bmp.Width;
         int srcHeight = bmp.Height;
-        int destHeight = cache.GetLength(0);
-        int destWidth = cache.GetLength(1);
+        int destHeight = dest.GetLength(0);
+        int destWidth = dest.GetLength(1);
 
         // Check if the cache array is big enough to hold the rectangle
-        if (rect.Bottom > destHeight || rect.Right > destWidth)
+        if (destRect.Bottom > destHeight || destRect.Right > destWidth)
         {
-            throw new ArgumentException("The cache array is not big enough to hold the rectangle.", nameof(cache));
+            throw new ArgumentException("The cache array is not big enough to hold the rectangle.", nameof(dest));
         }
 
-        uint* src = (uint*)bmp.GetPixels();
-        fixed (bool* dest = cache)
+        uint* srcPtr = (uint*)bmp.GetPixels();
+        fixed (bool* destPtr = dest)
         {
             if (textOrientations == TextOrientations.Horizontal)
             {
-                for (int y = rect.Top; y < rect.Bottom; ++y)
+                for (int y = destRect.Top; y < destRect.Bottom; ++y)
                 {
-                    int srcRow = y * srcWidth;
-                    int destRow = (y - rect.Top) * destWidth;
-                    for (int x = rect.Left; x < rect.Right; ++x)
+                    int srcRow = (y - destRect.Top) * srcWidth;
+                    int destRow = y * destWidth;
+                    for (int x = destRect.Left; x < destRect.Right; ++x)
                     {
-                        dest[destRow + x - rect.Left] = (src[srcRow + x] & 0xFF000000) > 0; // Use mask for Alpha channel
+                        int srcColumn = x - destRect.Left;
+                        if ((srcPtr[srcRow + srcColumn] & 0xFF000000) > 0) // Use mask for Alpha channel
+                        {
+                            destPtr[destRow + x] = true;
+                        }
                     }
                 }
             }
             else if (textOrientations == TextOrientations.Vertical)
             {
-                for (int y = rect.Top; y < rect.Bottom; ++y)
+                for (int y = destRect.Top; y < destRect.Bottom; ++y)
                 {
-                    int srcRow = y * srcWidth;
-                    for (int x = rect.Left; x < rect.Right; ++x)
+                    int destRow = y * destWidth;
+                    int srcColumn = y - destRect.Top;
+                    for (int x = destRect.Left; x < destRect.Right; ++x)
                     {
-                        // Determine the new rotated position for the vertical cache
-                        int rotatedX = y - rect.Top;
-                        int rotatedY = rect.Right - x - 1;
-
-                        // Map the rotated position to the destination cache
-                        dest[rotatedY * destWidth + rotatedX] = (src[srcRow + x] & 0xFF000000) > 0;
+                        int srcRow = (srcHeight - (x - destRect.Left + 1)) * srcWidth;
+                        if ((srcPtr[srcRow + srcColumn] & 0xff000000) > 0) // Use mask for Alpha channel
+                        {
+                            destPtr[destRow + x] = true;
+                        }
                     }
                 }
             }
