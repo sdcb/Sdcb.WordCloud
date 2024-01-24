@@ -53,7 +53,7 @@ internal record IntegralMap(int Width, int Height)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int GetSum(SKRectI rect)
+    public int GetSum(in SKRectI rect)
     {
         int left = rect.Left;
         int top = rect.Top;

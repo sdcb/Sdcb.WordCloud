@@ -25,16 +25,20 @@ public class Entrypoint
             "2" => new(900, 900, MakeDemoFrequency()) 
             { 
                 Random = new Random(1),
-                Mask = MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(@"C:\Users\sdfly\source\repos\Sdcb.WordCloud\Sdcb.WordClouds.Tests\alice_mask.png"), SKColors.White)
+                Mask = MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(@"C:\Users\ZhouJie\source\repos\Sdcb.WordCloud\Sdcb.WordClouds.Tests\alice_mask.png"), SKColors.White)
             },
             _ => throw new NotImplementedException(),
         };
-        Stopwatch sw = Stopwatch.StartNew();
-        WordCloud cloud = WordCloudFactory.Make(options);
-        Console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
-        using SKBitmap bmp = cloud.ToSKBitmap(addBox: false);
-        Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
-        bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png")));
+
+        for (int i = 0; i < 5; ++i)
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+            WordCloud cloud = WordCloudFactory.Make(options);
+            Console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
+            using SKBitmap bmp = cloud.ToSKBitmap(addBox: false);
+            Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
+            //bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png")));
+        }
     }
 
     static IEnumerable<WordFrequency> MakeDemoFrequency()

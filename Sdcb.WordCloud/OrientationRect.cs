@@ -30,6 +30,12 @@ internal record struct OrientationRect(TextOrientations Orientations, SKRectI Re
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsInbound(int width, int height)
+    {
+        return Rect.Right < width && Rect.Bottom < height && Rect.Left >= 0 && Rect.Top >= 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly float ToDegree()
     {
 #pragma warning disable CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。

@@ -164,23 +164,27 @@ public static class WordCloudFactory
 
         // Begin traversal at startPoint
         SKPointI currentPoint = startPoint;
+        bool hasHorizontal = allowedOrientations.HasFlag(TextOrientations.Horizontal);
+        bool hasVertical = allowedOrientations.HasFlag(TextOrientations.Vertical);
+        int width = integralMap.Width;
+        int height = integralMap.Height;
 
         // Continue indefinitely until we loop back to the start point
         do
         {
             // Yield the current point
-            if (allowedOrientations.HasFlag(TextOrientations.Horizontal))
+            if (hasHorizontal)
             {
                 OrientationRect orp = OrientationRect.ExpandHorizontally(currentPoint, rectSize);
-                if (orp.Rect.Right < integralMap.Width && orp.Rect.Bottom < integralMap.Height && orp.Rect.Left >= 0 && orp.Rect.Top >= 0 && integralMap.GetSum(orp.Rect) <= 0)
+                if (orp.IsInbound(width, height) && integralMap.GetSum(orp.Rect) <= 0)
                 {
                     return orp;
                 }
             }
-            if (allowedOrientations.HasFlag(TextOrientations.Vertical))
+            if (hasVertical)
             {
                 OrientationRect orp = OrientationRect.ExpandVertically(currentPoint, rectSize);
-                if (orp.Rect.Right < integralMap.Width && orp.Rect.Bottom < integralMap.Height && orp.Rect.Left >= 0 && orp.Rect.Top >= 0 && integralMap.GetSum(orp.Rect) <= 0)
+                if (orp.IsInbound(width, height) && integralMap.GetSum(orp.Rect) <= 0)
                 {
                     return orp;
                 }
