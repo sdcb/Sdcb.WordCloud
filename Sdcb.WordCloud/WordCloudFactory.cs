@@ -163,7 +163,7 @@ public static class WordCloudFactory
         }
 
         // Begin traversal at startPoint
-        SKPointI currentPoint = startPoint;
+        int cx = startPoint.X, cy = startPoint.Y;
         bool hasHorizontal = allowedOrientations.HasFlag(TextOrientations.Horizontal);
         bool hasVertical = allowedOrientations.HasFlag(TextOrientations.Vertical);
         int width = integralMap.Width;
@@ -175,7 +175,7 @@ public static class WordCloudFactory
             // Yield the current point
             if (hasHorizontal)
             {
-                OrientationRect orp = OrientationRect.ExpandHorizontally(currentPoint, rectSize);
+                OrientationRect orp = OrientationRect.ExpandHorizontally(new SKPointI(cx, cy), rectSize);
                 if (orp.IsInbound(width, height) && integralMap.GetSum(orp.Rect) <= 0)
                 {
                     return orp;
@@ -183,7 +183,7 @@ public static class WordCloudFactory
             }
             if (hasVertical)
             {
-                OrientationRect orp = OrientationRect.ExpandVertically(currentPoint, rectSize);
+                OrientationRect orp = OrientationRect.ExpandVertically(new SKPointI(cx, cy), rectSize);
                 if (orp.IsInbound(width, height) && integralMap.GetSum(orp.Rect) <= 0)
                 {
                     return orp;
@@ -191,23 +191,23 @@ public static class WordCloudFactory
             }
 
             // Move to the next point
-            currentPoint.X++;
+            cx++;
 
             // If we reach the end of the row, move to the next row
-            if (currentPoint.X >= integralMap.Width)
+            if (cx >= width)
             {
-                currentPoint.X = 0;
-                currentPoint.Y++;
+                cx = 0;
+                cy++;
             }
 
             // If we reach the end of the columns, start back at the top
-            if (currentPoint.Y >= integralMap.Height)
+            if (cy >= height)
             {
-                currentPoint.Y = 0;
+                cy = 0;
             }
 
             // If after wrapping around we're at the start point, stop traversing
-        } while (currentPoint.X != startPoint.X || currentPoint.Y != startPoint.Y);
+        } while (cx != startPoint.X || cy != startPoint.Y);
 
         return null;
     }
