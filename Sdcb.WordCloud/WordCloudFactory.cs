@@ -51,41 +51,13 @@ public static class WordCloudFactory
         fontPaintCache.TextSize = fontSize;
         PositionedTextGroup group = new(options.FontManager.GroupTextSingleLinePositioned(word.Word, fontPaintCache).ToArray());
         WordCloudContext ctx = new(options.Random, word.Word, word.Frequency, fontSize);
-        foreach (SKPointI p in TraversePointsSequentially(options.Size, options.GetRandomStartPoint()))
+        (TextOrientations orientations, SKRectI rect, SKPointI currentPoint) = FindSuitableOrietationRect(options.GetRandomStartPoint(), group.SizeI, options.TextOrientation, integralMap);
+        if (orientations == default)
         {
-            if (options.TextOrientation.HasFlag(TextOrientations.Horizontal))
-            {
-                SKRectI rect = ExpandHorizontally(p, group.SizeI.Width, group.SizeI.Height);
-                TextOrientations orientation = TextOrientations.Horizontal;
-                if (rect.Right >= options.Width || rect.Bottom >= options.Height || rect.Left < 0 || rect.Top < 0)
-                {
-                    continue;
-                }
-                if (integralMap.GetSum(rect) > 0)
-                {
-                    continue;
-                }
-
-                return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, p, rect, orientation);
-            }
-            if (options.TextOrientation.HasFlag(TextOrientations.Vertical))
-            {
-                SKRectI rect = ExpandHorizontally(p, group.SizeI.Width, group.SizeI.Height);
-                TextOrientations orientation = TextOrientations.Vertical;
-                if (rect.Right >= options.Width || rect.Bottom >= options.Height || rect.Left < 0 || rect.Top < 0)
-                {
-                    continue;
-                }
-                if (integralMap.GetSum(rect) > 0)
-                {
-                    continue;
-                }
-
-                return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, p, rect, orientation);
-            }
+            return null;
         }
 
-        return null;
+        return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, currentPoint, rect, orientations);
     }
 
     private static TextItem FillAndUpdate(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word, PositionedTextGroup group, WordCloudContext ctx, SKPointI p, SKRectI rect, TextOrientations orientation)
@@ -204,34 +176,65 @@ public static class WordCloudFactory
         return new SKRectI(center.X - halfWidth, center.Y - halfHeight, center.X + otherHalfWidth, center.Y + otherHalfHeight);
     }
 
-    internal static (TextOrientations orientations, SKRectI rect) FindSuitableOrietationRect(
-        IEnumerable<SKPointI> source,
+    internal static (TextOrientations orientations, SKRectI rect, SKPointI currentPoint) FindSuitableOrietationRect(
+        SKPointI startPoint,
         SKSizeI rectSize,
         TextOrientations allowedOrientations,
         IntegralMap integralMap)
     {
-        foreach (SKPointI p in source)
+        // Ensure the start point is within bounds
+        if (startPoint.X < 0 || startPoint.X >= integralMap.Width ||
+            startPoint.Y < 0 || startPoint.Y >= integralMap.Height)
         {
+            throw new ArgumentOutOfRangeException(nameof(startPoint));
+        }
+
+        // Begin traversal at startPoint
+        SKPointI currentPoint = startPoint;
+
+        // Continue indefinitely until we loop back to the start point
+        do
+        {
+            // Yield the current point
             if (allowedOrientations.HasFlag(TextOrientations.Horizontal))
             {
-                SKRectI rect = ExpandHorizontally(p, rectSize.Width, rectSize.Height);
+                SKRectI rect = ExpandHorizontally(currentPoint, rectSize.Width, rectSize.Height);
                 TextOrientations orientation = TextOrientations.Horizontal;
                 if (rect.Right < integralMap.Width && rect.Bottom < integralMap.Height && rect.Left >= 0 && rect.Top >= 0 && integralMap.GetSum(rect) <= 0)
                 {
-                    return (orientation, rect);
+                    return (orientation, rect, currentPoint);
                 }
             }
             if (allowedOrientations.HasFlag(TextOrientations.Vertical))
             {
-                SKRectI rect = ExpandHorizontally(p, rectSize.Width, rectSize.Height);
+                SKRectI rect = ExpandHorizontally(currentPoint, rectSize.Width, rectSize.Height);
                 TextOrientations orientation = TextOrientations.Vertical;
                 if (rect.Right < integralMap.Width && rect.Bottom < integralMap.Height && rect.Left >= 0 && rect.Top >= 0 && integralMap.GetSum(rect) <= 0)
                 {
-                    return (orientation, rect);
+                    return (orientation, rect, currentPoint);
                 }
             }
-        }
-        return (default, SKRectI.Empty);
+
+            // Move to the next point
+            currentPoint.X++;
+
+            // If we reach the end of the row, move to the next row
+            if (currentPoint.X >= integralMap.Width)
+            {
+                currentPoint.X = 0;
+                currentPoint.Y++;
+            }
+
+            // If we reach the end of the columns, start back at the top
+            if (currentPoint.Y >= integralMap.Height)
+            {
+                currentPoint.Y = 0;
+            }
+
+            // If after wrapping around we're at the start point, stop traversing
+        } while (currentPoint.X != startPoint.X || currentPoint.Y != startPoint.Y);
+
+        return (default, SKRectI.Empty, SKPointI.Empty);
     }
 
     internal static IEnumerable<SKPointI> TraversePointsSequentially(SKSizeI maxSize, SKPointI startPoint)
