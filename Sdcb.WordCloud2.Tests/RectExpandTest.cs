@@ -19,13 +19,13 @@ public class SkiaRectExpansionTests
         var actualOtherHalfHeight = height - actualHalfHeight;
 
         // Act
-        var rect = WordCloudFactory.ExpandHorizontally(center, width, height);
+        OrientationRect orp = OrientationRect.ExpandHorizontally(center, new (width, height));
 
         // Assert
-        Assert.Equal(centerX - actualHalfWidth, rect.Left);
-        Assert.Equal(centerY - actualHalfHeight, rect.Top);
-        Assert.Equal(centerX + actualOtherHalfWidth, rect.Right);
-        Assert.Equal(centerY + actualOtherHalfHeight, rect.Bottom);
+        Assert.Equal(centerX - actualHalfWidth, orp.Rect.Left);
+        Assert.Equal(centerY - actualHalfHeight, orp.Rect.Top);
+        Assert.Equal(centerX + actualOtherHalfWidth, orp.Rect.Right);
+        Assert.Equal(centerY + actualOtherHalfHeight, orp.Rect.Bottom);
     }
 
     // 测试垂直扩展 - 这次也确保使用all - half的计算方法
@@ -43,13 +43,13 @@ public class SkiaRectExpansionTests
         var actualOtherHalfHeight = height - actualHalfHeight;
 
         // Act
-        var rect = WordCloudFactory.ExpandVertically(center, width, height);
+        OrientationRect rect = OrientationRect.ExpandVertically(center, new(width, height));
 
         // Assert
-        Assert.Equal(centerX - actualHalfWidth, rect.Left);
-        Assert.Equal(centerY - actualHalfHeight, rect.Top);
-        Assert.Equal(centerX + actualOtherHalfWidth, rect.Right);
-        Assert.Equal(centerY + actualOtherHalfHeight, rect.Bottom);
+        Assert.Equal(centerX - actualHalfWidth, rect.Rect.Left);
+        Assert.Equal(centerY - actualHalfHeight, rect.Rect.Top);
+        Assert.Equal(centerX + actualOtherHalfWidth, rect.Rect.Right);
+        Assert.Equal(centerY + actualOtherHalfHeight, rect.Rect.Bottom);
     }
 
     // 测试边界条件
@@ -64,13 +64,13 @@ public class SkiaRectExpansionTests
         var actualOtherHalfHeight = height - actualHalfHeight;
 
         // Act
-        var rect = WordCloudFactory.ExpandHorizontally(center, width, height);
+        OrientationRect rect = OrientationRect.ExpandHorizontally(center, new (width, height));
 
         // Assert
-        Assert.Equal(center.X, rect.Left);
-        Assert.Equal(center.X, rect.Right); // 这确保了宽度为0时是一条线
-        Assert.Equal(center.Y - actualHalfHeight, rect.Top);
-        Assert.Equal(center.Y + actualOtherHalfHeight, rect.Bottom);
+        Assert.Equal(center.X, rect.Rect.Left);
+        Assert.Equal(center.X, rect.Rect.Right); // 这确保了宽度为0时是一条线
+        Assert.Equal(center.Y - actualHalfHeight, rect.Rect.Top);
+        Assert.Equal(center.Y + actualOtherHalfHeight, rect.Rect.Bottom);
     }
 
     [Fact]
@@ -84,12 +84,12 @@ public class SkiaRectExpansionTests
         var actualOtherHalfWidth = width - actualHalfWidth;
 
         // Act
-        var rect = WordCloudFactory.ExpandVertically(center, width, height);
+        OrientationRect rect = OrientationRect.ExpandVertically(center, new (width, height));
 
         // Assert
-        Assert.Equal(center.Y, rect.Top);
-        Assert.Equal(center.Y, rect.Bottom); // 这确保了高度为0时是一条线
-        Assert.Equal(center.X - actualHalfWidth, rect.Left);
-        Assert.Equal(center.X + actualOtherHalfWidth, rect.Right);
+        Assert.Equal(center.Y, rect.Rect.Top);
+        Assert.Equal(center.Y, rect.Rect.Bottom); // 这确保了高度为0时是一条线
+        Assert.Equal(center.X - actualHalfWidth, rect.Rect.Left);
+        Assert.Equal(center.X + actualOtherHalfWidth, rect.Rect.Right);
     }
 }

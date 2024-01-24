@@ -1,5 +1,6 @@
 ﻿using SkiaSharp;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Sdcb.WordClouds;
 
@@ -51,6 +52,7 @@ internal record IntegralMap(int Width, int Height)
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetSum(SKRectI rect)
     {
         int left = rect.Left;
@@ -79,6 +81,6 @@ internal record IntegralMap(int Width, int Height)
         return sum;
     }
 
-    public int[] ToArray() => Utils.Convert2DTo1D(_integral);
+    internal int[] ToArray() => Utils.Convert2DTo1D(_integral);
 }
 

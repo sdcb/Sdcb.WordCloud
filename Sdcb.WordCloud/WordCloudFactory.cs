@@ -51,25 +51,20 @@ public static class WordCloudFactory
         fontPaintCache.TextSize = fontSize;
         PositionedTextGroup group = new(options.FontManager.GroupTextSingleLinePositioned(word.Word, fontPaintCache).ToArray());
         WordCloudContext ctx = new(options.Random, word.Word, word.Frequency, fontSize);
-        (TextOrientations orientations, SKRectI rect, SKPointI currentPoint) = FindSuitableOrietationRect(options.GetRandomStartPoint(), group.SizeI, options.TextOrientation, integralMap);
-        if (orientations == default)
+        OrientationRect? orp = FindSuitableOrietationRect(options.GetRandomStartPoint(), group.SizeI, options.TextOrientation, integralMap);
+        if (orp is null)
         {
             return null;
         }
 
-        return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, currentPoint, rect, orientations);
+        return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, orp.Value);
     }
 
-    private static TextItem FillAndUpdate(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word, PositionedTextGroup group, WordCloudContext ctx, SKPointI p, SKRectI rect, TextOrientations orientation)
+    private static TextItem FillAndUpdate(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word, PositionedTextGroup group, WordCloudContext ctx, OrientationRect orp)
     {
-#pragma warning disable CS8524 // switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。
-        TextItem result = new(word.Word, fontSize, options.FontColorAccessor(ctx), p, orientation switch
-        {
-            TextOrientations.Horizontal => 0,
-            TextOrientations.Vertical => 90,
-        });
+        TextItem result = new(word.Word, fontSize, options.FontColorAccessor(ctx), orp.Center, orp.ToDegree());
         SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);
-        FillCache(textLayout, orientation, cache, rect);
+        FillCache(textLayout, orp.Orientations, cache, orp.Rect);
         integralMap.Update(cache);
         return result;
     }
@@ -154,29 +149,7 @@ public static class WordCloudFactory
         }
     }
 
-    internal static SKRectI ExpandHorizontally(SKPointI center, int width, int height)
-    {
-        int halfWidth = width / 2;
-        int otherHalfWidth = width - halfWidth;
-        int halfHeight = height / 2;
-        int otherHalfHeight = height - halfHeight;
-        // 宽度在水平方向上分布，因此需要调整中心点的X坐标。
-        // 高度在垂直方向上均匀分布，因此中心点的Y坐标上下均匀分布halfHeight。
-        return new SKRectI(center.X - halfWidth, center.Y - halfHeight, center.X + otherHalfWidth, center.Y + otherHalfHeight);
-    }
-
-    internal static SKRectI ExpandVertically(SKPointI center, int width, int height)
-    {
-        int halfHeight = height / 2;
-        int otherHalfHeight = height - halfHeight;
-        int halfWidth = width / 2;
-        int otherHalfWidth = width - halfWidth;
-        // 高度在垂直方向上分布，因此需要调整中心点的Y坐标。
-        // 宽度在水平方向上均匀分布，因此中心点的X坐标左右均匀分布halfWidth。
-        return new SKRectI(center.X - halfWidth, center.Y - halfHeight, center.X + otherHalfWidth, center.Y + otherHalfHeight);
-    }
-
-    internal static (TextOrientations orientations, SKRectI rect, SKPointI currentPoint) FindSuitableOrietationRect(
+    internal static OrientationRect? FindSuitableOrietationRect(
         SKPointI startPoint,
         SKSizeI rectSize,
         TextOrientations allowedOrientations,
@@ -198,20 +171,18 @@ public static class WordCloudFactory
             // Yield the current point
             if (allowedOrientations.HasFlag(TextOrientations.Horizontal))
             {
-                SKRectI rect = ExpandHorizontally(currentPoint, rectSize.Width, rectSize.Height);
-                TextOrientations orientation = TextOrientations.Horizontal;
-                if (rect.Right < integralMap.Width && rect.Bottom < integralMap.Height && rect.Left >= 0 && rect.Top >= 0 && integralMap.GetSum(rect) <= 0)
+                OrientationRect orp = OrientationRect.ExpandHorizontally(currentPoint, rectSize);
+                if (orp.Rect.Right < integralMap.Width && orp.Rect.Bottom < integralMap.Height && orp.Rect.Left >= 0 && orp.Rect.Top >= 0 && integralMap.GetSum(orp.Rect) <= 0)
                 {
-                    return (orientation, rect, currentPoint);
+                    return orp;
                 }
             }
             if (allowedOrientations.HasFlag(TextOrientations.Vertical))
             {
-                SKRectI rect = ExpandHorizontally(currentPoint, rectSize.Width, rectSize.Height);
-                TextOrientations orientation = TextOrientations.Vertical;
-                if (rect.Right < integralMap.Width && rect.Bottom < integralMap.Height && rect.Left >= 0 && rect.Top >= 0 && integralMap.GetSum(rect) <= 0)
+                OrientationRect orp = OrientationRect.ExpandVertically(currentPoint, rectSize);
+                if (orp.Rect.Right < integralMap.Width && orp.Rect.Bottom < integralMap.Height && orp.Rect.Left >= 0 && orp.Rect.Top >= 0 && integralMap.GetSum(orp.Rect) <= 0)
                 {
-                    return (orientation, rect, currentPoint);
+                    return orp;
                 }
             }
 
@@ -234,7 +205,7 @@ public static class WordCloudFactory
             // If after wrapping around we're at the start point, stop traversing
         } while (currentPoint.X != startPoint.X || currentPoint.Y != startPoint.Y);
 
-        return (default, SKRectI.Empty, SKPointI.Empty);
+        return null;
     }
 
     internal static IEnumerable<SKPointI> TraversePointsSequentially(SKSizeI maxSize, SKPointI startPoint)
