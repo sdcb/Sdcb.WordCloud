@@ -45,14 +45,14 @@ public class FillCacheTest
         WriteBmp(bmp);
         _console.WriteLine("cache:");
         WriteCache(cache);
-        Assert.Equal(
-        [ 
-            false, false, false, false,
-            false, false, true, false,
-            false, true, true, true,
-            false, false, false, false,
-            false, false, false, false
-        ], Utils.Convert2DTo1D(cache));
+        CheckCacheAsX(
+        [
+            "....",
+            "..X.",
+            ".XXX",
+            "....",
+            "....",
+        ], cache);
     }
 
     [Fact]
@@ -82,14 +82,45 @@ public class FillCacheTest
         WriteBmp(bmp);
         _console.WriteLine("cache:");
         WriteCache(cache);
-        Assert.Equal(
-        [ 
-            false, false, false, false,
-            false, true, false, false,
-            false, true, true, false,
-            false, true, false, false,
-            false, false, false, false
-        ], Utils.Convert2DTo1D(cache));
+        CheckCacheAsX(
+        [
+            "....",
+            ".X..",
+            ".XX.",
+            ".X..",
+            "....",
+        ], cache);
+    }
+
+    [Fact]
+    public unsafe void VerticleTestEdgeCase()
+    {
+        // arrange
+        int width = 599, height = 326;
+        using SKBitmap bmp = new(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+        {
+            using SKCanvas c = new(bmp);
+            c.Clear(SKColors.White);
+        }
+
+        int cacheWidth = 800, cacheHeight = 600;
+        bool[,] cache = new bool[cacheHeight, cacheWidth];
+        SKRectI rect = SKRectI.Create(0, 0, height, width);
+
+        // act
+        WordCloudFactory.FillCache(bmp, TextOrientations.Vertical, cache, rect);
+
+        // assert
+        _console.WriteLine("SKBitmap:");
+        WriteBmp(bmp);
+        _console.WriteLine("cache:");
+        WriteCache(cache);
+        CheckCacheAsX(
+        [
+            "XX",
+            ".X",
+            "XX"
+        ], cache);
     }
 
     [Fact]

@@ -20,17 +20,17 @@ internal record struct OrientationRect(TextOrientations Orientations, SKRectI Re
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static OrientationRect ExpandVertically(SKPointI center, SKSizeI size)
     {
-        int halfHeight = size.Height / 2;
-        int otherHalfHeight = size.Height - halfHeight;
         int halfWidth = size.Width / 2;
         int otherHalfWidth = size.Width - halfWidth;
+        int halfHeight = size.Height / 2;
+        int otherHalfHeight = size.Height - halfHeight;
         // 高度在垂直方向上分布，因此需要调整中心点的Y坐标。
         // 宽度在水平方向上均匀分布，因此中心点的X坐标左右均匀分布halfWidth。
-        return new(TextOrientations.Vertical, new SKRectI(center.X - halfWidth, center.Y - halfHeight, center.X + otherHalfWidth, center.Y + otherHalfHeight), center);
+        return new(TextOrientations.Vertical, new SKRectI(center.Y - halfHeight, center.X - halfWidth, center.Y + otherHalfHeight, center.X + otherHalfWidth), center);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsInbound(int width, int height)
+    public bool IsInside(int width, int height)
     {
         return Rect.Right < width && Rect.Bottom < height && Rect.Left >= 0 && Rect.Top >= 0;
     }

@@ -21,7 +21,11 @@ public class Entrypoint
 
         WordCloudOptions options = id switch
         {
-            "1" => new(800, 600, MakeDemoFrequency()) { Random = new Random(1) }, 
+            "1" => new(800, 600, MakeDemoFrequency().Take(2)) 
+            { 
+                Random = new Random(1),
+                TextOrientation = TextOrientations.Vertical,
+            }, 
             "2" => new(900, 900, MakeDemoFrequency()) 
             { 
                 Random = new Random(1),
@@ -37,7 +41,8 @@ public class Entrypoint
             Console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
             using SKBitmap bmp = cloud.ToSKBitmap(addBox: false);
             Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
-            //bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png")));
+            using FileStream dest = File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png"));
+            bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(dest);
         }
     }
 

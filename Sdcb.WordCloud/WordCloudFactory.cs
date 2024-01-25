@@ -176,7 +176,7 @@ public static class WordCloudFactory
             if (hasHorizontal)
             {
                 OrientationRect orp = OrientationRect.ExpandHorizontally(new SKPointI(cx, cy), rectSize);
-                if (orp.IsInbound(width, height) && integralMap.GetSum(orp.Rect) <= 0)
+                if (orp.IsInside(width, height) && integralMap.GetSum(orp.Rect) <= 0)
                 {
                     return orp;
                 }
@@ -184,7 +184,7 @@ public static class WordCloudFactory
             if (hasVertical)
             {
                 OrientationRect orp = OrientationRect.ExpandVertically(new SKPointI(cx, cy), rectSize);
-                if (orp.IsInbound(width, height) && integralMap.GetSum(orp.Rect) <= 0)
+                if (orp.IsInside(width, height) && integralMap.GetSum(orp.Rect) <= 0)
                 {
                     return orp;
                 }

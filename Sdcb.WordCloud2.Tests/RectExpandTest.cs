@@ -30,7 +30,7 @@ public class SkiaRectExpansionTests
 
     // 测试垂直扩展 - 这次也确保使用all - half的计算方法
     [Theory]
-    [InlineData(100, 100, 50, 50)]
+    [InlineData(100, 100, 80, 60)]
     [InlineData(100, 100, 49, 51)] // 奇数高度
     [InlineData(100, 100, 100, 0)] // 高度为0
     public void ExpandVertically_ReturnsCorrectRectangle(int centerX, int centerY, int width, int height)
@@ -46,10 +46,10 @@ public class SkiaRectExpansionTests
         OrientationRect rect = OrientationRect.ExpandVertically(center, new(width, height));
 
         // Assert
-        Assert.Equal(centerX - actualHalfWidth, rect.Rect.Left);
-        Assert.Equal(centerY - actualHalfHeight, rect.Rect.Top);
-        Assert.Equal(centerX + actualOtherHalfWidth, rect.Rect.Right);
-        Assert.Equal(centerY + actualOtherHalfHeight, rect.Rect.Bottom);
+        Assert.Equal(centerX - actualHalfWidth, rect.Rect.Top);
+        Assert.Equal(centerY - actualHalfHeight, rect.Rect.Left);
+        Assert.Equal(centerX + actualOtherHalfWidth, rect.Rect.Bottom);
+        Assert.Equal(centerY + actualOtherHalfHeight, rect.Rect.Right);
     }
 
     // 测试边界条件
