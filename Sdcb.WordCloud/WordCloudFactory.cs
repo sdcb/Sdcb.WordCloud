@@ -24,7 +24,7 @@ public static class WordCloudFactory
             .Select(word =>
             {
                 TextItem? item = null;
-                fontSize = options.FontSizeAccessor(new(options.Random, word.Word, word.Frequency, fontSize));
+                fontSize = options.FontSizeAccessor(new(options.Random, word.Word, word.Score, fontSize));
                 do
                 {
                     if (fontSize <= options.MinFontSize)
@@ -46,11 +46,11 @@ public static class WordCloudFactory
         return new WordCloud(options.Width, options.Height, options.FontManager, items, options.Background);
     }
 
-    private static TextItem? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word)
+    private static TextItem? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordScore word)
     {
         fontPaintCache.TextSize = fontSize;
         PositionedTextGroup group = new(options.FontManager.GroupTextSingleLinePositioned(word.Word, fontPaintCache).ToArray());
-        WordCloudContext ctx = new(options.Random, word.Word, word.Frequency, fontSize);
+        WordCloudContext ctx = new(options.Random, word.Word, word.Score, fontSize);
         OrientationRect? orp = FindSuitableOrietationRect(options.GetRandomStartPoint(), group.SizeI, options.TextOrientation, integralMap);
         if (orp is null)
         {
@@ -60,7 +60,7 @@ public static class WordCloudFactory
         return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, orp.Value);
     }
 
-    private static TextItem FillAndUpdate(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordFrequency word, PositionedTextGroup group, WordCloudContext ctx, OrientationRect orp)
+    private static TextItem FillAndUpdate(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordScore word, PositionedTextGroup group, WordCloudContext ctx, OrientationRect orp)
     {
         TextItem result = new(word.Word, fontSize, options.FontColorAccessor(ctx), orp.Center, orp.ToDegree());
         SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);

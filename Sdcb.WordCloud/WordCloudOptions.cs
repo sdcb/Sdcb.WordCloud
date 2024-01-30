@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Sdcb.WordClouds;
 
-public record WordCloudOptions(int Width, int Height, IEnumerable<WordFrequency> WordFrequencies)
+public record WordCloudOptions(int Width, int Height, IEnumerable<WordScore> WordFrequencies)
 {
     public readonly SKSizeI Size = new(Width, Height);
 
@@ -41,7 +41,7 @@ public delegate float FontSizeAccessor(WordCloudContext context);
 
 public delegate SKColor FontColorAccessor(WordCloudContext context);
 
-public record WordCloudContext(Random Random, string Word, int Frequency, float CurrentFontSize) : WordFrequency(Word, Frequency);
+public record WordCloudContext(Random Random, string Word, int Frequency, float CurrentFontSize) : WordScore(Word, Frequency);
 
 [Flags]
 public enum TextOrientations

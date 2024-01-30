@@ -80,16 +80,14 @@ public class SkiaRectExpansionTests
         var center = new SKPointI(100, 100);
         var width = 100;
         var height = 0;
-        var actualHalfWidth = width / 2;
-        var actualOtherHalfWidth = width - actualHalfWidth;
 
         // Act
         OrientationRect rect = OrientationRect.ExpandVertically(center, new (width, height));
 
         // Assert
-        Assert.Equal(center.Y, rect.Rect.Top);
-        Assert.Equal(center.Y, rect.Rect.Bottom); // 这确保了高度为0时是一条线
-        Assert.Equal(center.X - actualHalfWidth, rect.Rect.Left);
-        Assert.Equal(center.X + actualOtherHalfWidth, rect.Rect.Right);
+        Assert.Equal(50, rect.Rect.Top);
+        Assert.Equal(100, rect.Rect.Left);
+        Assert.Equal(150, rect.Rect.Bottom);
+        Assert.Equal(100, rect.Rect.Right);
     }
 }

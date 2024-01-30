@@ -46,7 +46,7 @@ public class Entrypoint
         }
     }
 
-    static IEnumerable<WordFrequency> MakeDemoFrequency()
+    static IEnumerable<WordScore> MakeDemoFrequency()
     {
         string text = """
             459	cloud
@@ -248,6 +248,6 @@ public class Entrypoint
         return text
             .Split("\n")
             .Select(x => x.Trim().Split("\t"))
-            .Select(x => new WordFrequency(Frequency: int.Parse(x[0]), Word: x[1]));
+            .Select(x => new WordScore(Score: int.Parse(x[0]), Word: x[1]));
     }
 }
