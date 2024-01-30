@@ -26,7 +26,7 @@ internal record struct OrientationRect(TextOrientations Orientations, SKRectI Re
         int otherHalfHeight = size.Height - halfHeight;
         // 高度在垂直方向上分布，因此需要调整中心点的Y坐标。
         // 宽度在水平方向上均匀分布，因此中心点的X坐标左右均匀分布halfWidth。
-        return new(TextOrientations.Vertical, new SKRectI(center.Y - halfHeight, center.X - halfWidth, center.Y + otherHalfHeight, center.X + otherHalfWidth), center);
+        return new(TextOrientations.Vertical, new SKRectI(center.X - halfHeight, center.Y - halfWidth, center.X + otherHalfHeight, center.Y + otherHalfWidth), center);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
