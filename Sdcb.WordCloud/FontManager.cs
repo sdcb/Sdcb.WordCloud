@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Sdcb.WordClouds;
 
@@ -56,7 +57,7 @@ public class FontManager : IDisposable
     /// </summary>
     /// <param name="codepoint">The codepoint.</param>
     /// <returns>The matched SKTypeface font.</returns>
-    public SKTypeface MatchFont(int codepoint)
+    protected SKTypeface MatchFont(int codepoint)
     {
         if (_mapping.TryGetValue(codepoint, out SKTypeface? val))
         {
@@ -82,7 +83,7 @@ public class FontManager : IDisposable
     /// </summary>
     /// <param name="fullText">The full text.</param>
     /// <returns>An enumerable of <see cref="TextAndFont"/> representing the grouped text and fonts.</returns>
-    public virtual IEnumerable<TextAndFont> GroupTextSingleLine(string fullText)
+    protected virtual IEnumerable<TextAndFont> GroupTextSingleLine(string fullText)
     {
         SKTypeface lastfont = null!;
         StringBuilder accString = new(capacity: fullText.Length);
@@ -129,22 +130,11 @@ public class FontManager : IDisposable
     }
 
     /// <summary>
-    /// Groups the characters of the text with corresponding fonts.
-    /// </summary>
-    /// <param name="fullText">The full text.</param>
-    /// <returns>An enumerable of <see cref="TextAndFont"/> representing the grouped characters and fonts.</returns>
-    public virtual IEnumerable<TextAndFont> GroupCharacters(string fullText)
-    {
-        return UnicodeCharacterSplit(fullText)
-            .Select(x => new TextAndFont(Char.ConvertFromUtf32(x), MatchFont(x)));
-    }
-
-    /// <summary>
     /// Splits the input string into Unicode characters.
     /// </summary>
     /// <param name="input">The input string.</param>
     /// <returns>An enumerable of Unicode codepoints.</returns>
-    public static IEnumerable<int> UnicodeCharacterSplit(string input)
+    protected static IEnumerable<int> UnicodeCharacterSplit(string input)
     {
         for (var i = 0; i < input.Length; ++i)
         {
@@ -171,18 +161,6 @@ public class FontManager : IDisposable
                 yield return input[i];
             }
         }
-    }
-
-    /// <summary>
-    /// Creates a text layout bitmap for the specified text using the given paint.
-    /// </summary>
-    /// <param name="text">The text.</param>
-    /// <param name="paint">The SKPaint object used for drawing text.</param>
-    /// <returns>The created SKBitmap object representing the text layout.</returns>
-    public virtual SKBitmap CreateTextLayout(string text, SKPaint paint)
-    {
-        PositionedTextGroup group = new(GroupTextSingleLinePositioned(text, paint).ToArray());
-        return group.CreateTextLayout(paint);
     }
 
     /// <summary>
@@ -216,45 +194,5 @@ public class FontManager : IDisposable
     ~FontManager()
     {
         Dispose(false);
-    }
-}
-
-/// <summary>
-/// Represents the text and font used in the word cloud.
-/// </summary>
-public record TextAndFont(string Text, SKTypeface Typeface);
-
-/// <summary>
-/// Represents the positioned text used in the word cloud.
-/// </summary>
-public record PositionedText(string Text, SKTypeface Typeface, float Width, float Left, float Height) : TextAndFont(Text, Typeface)
-{
-    /// <summary>
-    /// Gets the right position of the text.
-    /// </summary>
-    public float Right { get; } = Left + Width;
-}
-
-public record PositionedTextGroup(PositionedText[] Texts)
-{
-    public readonly float Width = Texts.Length > 0 ? Texts[^1].Right : 0;
-
-    public readonly float Height = Texts.Max(x => x.Height);
-
-    public readonly SKSize Size = new(Texts.Length > 0 ? Texts[^1].Right : 0, Texts.Max(x => x.Height));
-
-    public readonly SKSizeI SizeI = new((int)Math.Ceiling(Texts.Length > 0 ? Texts[^1].Right : 0), (int)Math.Ceiling(Texts.Max(x => x.Height)));
-
-    public SKBitmap CreateTextLayout(SKPaint paint)
-    {
-        SKBitmap temp = new(SizeI.Width, SizeI.Height);
-        using SKCanvas tempCanvas = new(temp);
-        foreach (PositionedText segment in Texts)
-        {
-            paint.Typeface = segment.Typeface;
-            tempCanvas.DrawText(segment.Text, segment.Left, -paint.FontMetrics.Ascent, paint);
-        }
-
-        return temp;
     }
 }

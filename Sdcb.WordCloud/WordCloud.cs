@@ -1,8 +1,8 @@
 ﻿using SkiaSharp;
 using System;
-using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 
 namespace Sdcb.WordClouds;
 
@@ -27,9 +27,9 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         {
             textPainter.TextSize = line.FontSize;
             textPainter.Color = line.Color;
-            using SKBitmap textLayout = line.CreateTextLayout(textPainter);
+            using SKBitmap textLayout = line.TextGroup.CreateTextLayout(textPainter);
 
-            SKSize size = line.Size;
+            SKSize size = line.TextGroup.Size;
             SKPoint startPoint = new(line.Center.X - size.Width / 2, line.Center.Y - size.Height / 2);
 
             //TestWordCloudBitmap(temp, item.TextContent + ".png");
@@ -50,26 +50,54 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         return result;
     }
 
-    private static void TestWordCloudBitmap(SKBitmap bitmap, string fileName)
+    public string ToJson()
     {
-        using var image = SKImage.FromBitmap(bitmap);
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        using var stream = File.OpenWrite(Path.Combine(@"C:\Users\ZhouJie\source\repos\Sdcb.WordCloud\Sdcb.WordCloud2.Tests\bin\Debug\net8.0\WordCloudOutputs", fileName));
-        data.SaveTo(stream);
+        return JsonSerializer.Serialize(this, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        });
+    }
+
+    public static WordCloud FromJson(string json)
+    {
+        return JsonSerializer.Deserialize<WordCloud>(json, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        })!;
     }
 
     public string ToSvg()
     {
-        throw new NotImplementedException();
-    }
+        // SVG header with necessary namespaces and initial viewport
+        StringBuilder svgBuilder = new();
+        svgBuilder.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>");
+        svgBuilder.AppendLine($"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{Width}\" height=\"{Height}\" viewBox=\"0 0 {Width} {Height}\">");
 
-    // Utility method to convert an SKColor to a valid CSS color string
-    private static string SKColorToCSSColor(SKColor color)
-    {
-        return $"#{color.Red:X2}{color.Green:X2}{color.Blue:X2}{(color.Alpha == 255 ? "" : $"{color.Alpha:X2}")}";
-    }
-}
+        // Drawing each word as text in SVG
+        foreach (TextLine line in TextLines)
+        {
+            // To handle rotation and positioning, we use a group with a transform attribute
+            svgBuilder.AppendLine($"<g transform=\"translate({line.Center.X},{line.Center.Y}) rotate({line.Rotate})\">");
 
-public record TextLine(PositionedText[] Texts, float FontSize, SKColor Color, SKPoint Center, float Rotate) : PositionedTextGroup(Texts)
-{
+            // Adding each part of the text line
+            foreach (PositionedText positionedText in line.TextGroup.Texts)
+            {
+                // Convert the color to a CSS compatible format
+                string color = SKColorJsonConverter.SKColorToCSSColor(line.Color);
+
+                // Adding text element with applied styles
+                svgBuilder.AppendLine(
+                    $"<text x=\"{-line.TextGroup.Size.Width / 2}\" y=\"{positionedText.Width - line.TextGroup.Size.Width / 2 - positionedText.Left}\" " +
+                    $"fill=\"{color}\" font-family=\"{positionedText.Typeface.FamilyName}\" font-size=\"{line.FontSize}px\">" +
+                    $"{System.Security.SecurityElement.Escape(positionedText.Text)}</text>");
+            }
+
+            svgBuilder.AppendLine("</g>"); // Close the group
+        }
+
+        // Close the SVG tag and return the SVG content as a string
+        svgBuilder.AppendLine("</svg>");
+        return svgBuilder.ToString();
+    }
 }

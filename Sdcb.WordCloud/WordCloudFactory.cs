@@ -65,7 +65,7 @@ public static class WordCloudFactory
         using SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);
         FillCache(textLayout, orp.Orientations, cache, orp.Rect);
         integralMap.Update(cache);
-        return new TextLine(group.Texts, fontSize, options.FontColorAccessor(ctx), orp.Center, orp.ToDegree());
+        return new TextLine(group, fontSize, options.FontColorAccessor(ctx), orp.Center, orp.ToDegree());
     }
 
     /// <summary>
