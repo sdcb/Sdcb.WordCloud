@@ -25,7 +25,6 @@ namespace Sdcb.WordClouds;
 /// <param name="Mask">The mask bitmap image to define fillable areas for word cloud generation.</param>
 /// <param name="BackgroundColor">The color in the mask image representing the fillable areas; null to ignore this option.</param>
 /// <param name="ForegroundColor">The color in the mask image representing non-fillable areas; null to ignore this option.</param>
-
 public record MaskOptions(SKBitmap Mask, SKColor? BackgroundColor, SKColor? ForegroundColor)
 {
     /// <summary>
@@ -58,7 +57,16 @@ public record MaskOptions(SKBitmap Mask, SKColor? BackgroundColor, SKColor? Fore
         return new(mask, null, foregroundColor);
     }
 
-    public void FillMaskCache(bool[,] cache)
+    /// <summary>
+    /// Fills a two-dimensional boolean array that acts as a cache, indicating which points inside the word cloud can contain text, 
+    /// based on the opacity of the mask at the corresponding positions.
+    /// If the mask pixel is opaque, the cache value will be true (indicating available space); otherwise, it will be false.
+    /// </summary>
+    /// <param name="cache">The two-dimensional boolean array to be filled with mask data.</param>
+    /// <exception cref="ArgumentException">Thrown when the mask image size is smaller than the cache's size or
+    /// when the provided cache size does not match the expected size derived from its dimensions or
+    /// when an unsupported mask color type is provided.</exception>
+    internal void FillMaskCache(bool[,] cache)
     {
         int height = cache.GetLength(0);
         int width = cache.GetLength(1);

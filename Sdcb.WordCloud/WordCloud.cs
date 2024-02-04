@@ -4,12 +4,21 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-[assembly: InternalsVisibleTo("Sdcb.WordCloud2.Tests")]
+[assembly: InternalsVisibleTo("Sdcb.WordCloud.Tests")]
 
 namespace Sdcb.WordClouds;
 
+/// <summary>
+/// Represents a word cloud graphic that can be rendered to a bitmap or converted to different graphic formats like SVG.
+/// </summary>
 public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? Background = null)
 {
+    /// <summary>
+    /// Renders the word cloud to an SKBitmap.
+    /// </summary>
+    /// <param name="addBox">If set to true, adds a box around each text line for visual debugging.</param>
+    /// <returns>A new SKBitmap instance containing the rendered word cloud.</returns>
+    /// <exception cref="ArgumentException">Thrown when the background image does not match the size of the canvas.</exception>
     public SKBitmap ToSKBitmap(bool addBox = false)
     {
         SKBitmap result = new(Width, Height);
@@ -52,6 +61,10 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         return result;
     }
 
+    /// <summary>
+    /// Serializes the word cloud to a JSON string, using camel case property naming and indented formatting.
+    /// </summary>
+    /// <returns>A JSON string representing the word cloud.</returns>
     public string ToJson()
     {
         return JsonSerializer.Serialize(this, new JsonSerializerOptions
@@ -61,6 +74,11 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         });
     }
 
+    /// <summary>
+    /// Deserializes a JSON string to a WordCloud object.
+    /// </summary>
+    /// <param name="json">The JSON string to deserialize.</param>
+    /// <returns>A WordCloud object represented by the JSON string.</returns>
     public static WordCloud FromJson(string json)
     {
         return JsonSerializer.Deserialize<WordCloud>(json, new JsonSerializerOptions
@@ -69,6 +87,10 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         })!;
     }
 
+    /// <summary>
+    /// Converts the word cloud to an SVG (Scalable Vector Graphics) format.
+    /// </summary>
+    /// <returns>A string containing the SVG representation of the word cloud.</returns>
     public string ToSvg()
     {
         // SVG header with necessary namespaces and initial viewport
@@ -103,6 +125,11 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         return svgBuilder.ToString();
     }
 
+    /// <summary>
+    /// Creates a new WordCloud instance based on the specified WordCloudOptions.
+    /// </summary>
+    /// <param name="options">A set of options that dictate how the word cloud should be constructed.</param>
+    /// <returns>A new WordCloud instance built according to the provided options.</returns>
     public static WordCloud Create(WordCloudOptions options)
     {
         IntegralMap integralMap = new(options.Width, options.Height);
@@ -114,7 +141,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         float fontSize = options.GetInitialFontSize();
 
         using SKPaint fontPaintCache = new() { IsAntialias = false };
-        TextLine[] items = options.WordFrequencies
+        TextLine[] items = options.WordScores
             .Select(word =>
             {
                 TextLine? item = null;
@@ -171,7 +198,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
     /// <param name="bmp">The SKBitmap image with pixel data to transfer to the boolean cache.</param>
     /// <param name="destRect">The SKRectI defining the region within the cache to be filled. This is not 
     /// the crop area from the bitmap but the rectangle's position in the cache.</param>
-    /// <param name="textOrientation">The text orientation of the bitmap, determining how the
+    /// <param name="textOrientations">The text orientation of the bitmap, determining how the
     /// pixel data will be transferred to the boolean cache.</param>
     /// <param name="dest">The two-dimensional array to be filled with boolean values indicating presence
     /// (true) or absence (false) of the alpha channel for each pixel in the SKBitmap.</param>

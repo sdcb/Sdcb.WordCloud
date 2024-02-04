@@ -5,8 +5,19 @@ using System.Text.Json.Serialization;
 
 namespace Sdcb.WordClouds;
 
+/// <summary>
+/// Converts a <see cref="SKTypeface"/> object to or from JSON.
+/// </summary>
 public class SKTypefaceConverter : JsonConverter<SKTypeface>
 {
+    /// <summary>
+    /// Reads and converts the JSON to type <see cref="SKTypeface"/>.
+    /// </summary>
+    /// <param name="reader">The UTF-8 encoded JSON text to read.</param>
+    /// <param name="typeToConvert">The type to convert.</param>
+    /// <param name="options">Options for reading the JSON.</param>
+    /// <returns>The converted value of the type <see cref="SKTypeface"/>.</returns>
+    /// <exception cref="JsonException">Thrown when JSON is either not a string or an object or is an unexpected end.</exception>
     public override SKTypeface Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.String)
@@ -58,6 +69,12 @@ public class SKTypefaceConverter : JsonConverter<SKTypeface>
         throw new JsonException("Expected a JSON object or string for SKTypeface.");
     }
 
+    /// <summary>
+    /// Writes a <see cref="SKTypeface"/> object as JSON.
+    /// </summary>
+    /// <param name="writer">The JSON writer to write the converted value to.</param>
+    /// <param name="value">The value of <see cref="SKTypeface"/> to convert.</param>
+    /// <param name="options">Options for converting the <see cref="SKTypeface"/> to JSON.</param>
     public override void Write(Utf8JsonWriter writer, SKTypeface value, JsonSerializerOptions options)
     {
         SKFontStyle fontStyle = value.FontStyle;

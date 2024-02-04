@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 
 namespace Sdcb.WordClouds;
 
@@ -17,10 +16,17 @@ public class FontManager : IDisposable
     /// </summary>
     public SKTypeface[] Fonts { get; }
 
+    /// <summary>
+    /// Indicates whether the FontManager owns the SKTypeface fonts and is responsibility for disposing them.
+    /// </summary>
     public bool IsOwned { get; }
 
+    /// <summary>
+    /// Gets a value indicating whether the FontManager is already disposed.
+    /// </summary>
     public bool Disposed { get; private set; } = false;
 
+    // Holds a mapping from Unicode codepoints to corresponding SKTypeface objects.
     private readonly Dictionary<int, SKTypeface> _mapping = new();
 
     /// <summary>
@@ -34,8 +40,9 @@ public class FontManager : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="FontManager"/> class with the specified fonts.
     /// </summary>
-    /// <remarks><see cref="FontManager"/> will take the ownership of <see cref="SKTypeface"/> and in charge of dispose.</remarks>
     /// <param name="fonts">The SKTypeface fonts.</param>
+    /// <param name="isOwned">Whether the FontManager is responsible for disposing the fonts.</param>
+    /// <remarks><see cref="FontManager"/> will take the ownership of <see cref="SKTypeface"/> and in charge of dispose.</remarks>
     public FontManager(SKTypeface[] fonts, bool isOwned = true)
     {
         Fonts = fonts;
@@ -172,6 +179,10 @@ public class FontManager : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    /// Disposes of the FontManager's resources, which includes clearing the font mapping and disposing of owned fonts.
+    /// </summary>
+    /// <param name="disposing">Determines whether the method has been called directly or by a runtime finalizer.</param>
     protected virtual void Dispose(bool disposing)
     {
         if (Disposed) return;
@@ -191,6 +202,9 @@ public class FontManager : IDisposable
         Disposed = true;
     }
 
+    /// <summary>
+    /// Finalizer for the FontManager class.
+    /// </summary>
     ~FontManager()
     {
         Dispose(false);
