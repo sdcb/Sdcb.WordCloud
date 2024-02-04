@@ -80,7 +80,7 @@ public record WordCloudOptions(int Width, int Height, IEnumerable<WordScore> Wor
     /// <summary>
     /// The orientations in which text can be placed in the word cloud.
     /// </summary>
-    public TextOrientations TextOrientation { get; set; } = TextOrientations.Horizontal | TextOrientations.Vertical;
+    public TextOrientations TextOrientation { get; set; } = TextOrientations.PreferHorizontal;
 }
 
 /// <summary>
@@ -106,6 +106,12 @@ public delegate SKColor FontColorAccessor(WordCloudContext context);
 /// <param name="CurrentFontSize">The current computed font size for the word.</param>
 public record WordCloudContext(Random Random, string Word, int Frequency, float CurrentFontSize) : WordScore(Word, Frequency);
 
+internal enum HorizontalOrVertical
+{
+    Horizontal,
+    Vertical
+}
+
 /// <summary>
 /// Defines possible text orientations in a word cloud.
 /// </summary>
@@ -113,12 +119,30 @@ public record WordCloudContext(Random Random, string Word, int Frequency, float 
 public enum TextOrientations
 {
     /// <summary>
+    /// Represents a preference for horizontal orientation but allows for vertical as well.
+    /// </summary>
+    PreferHorizontal,
+
+    /// <summary>
+    /// Represents a preference for vertical orientation but allows for horizontal as well.
+    /// </summary>
+    PreferVertical,
+
+    /// <summary>
     /// Represents horizontal orientation of text.
     /// </summary>
-    Horizontal = 0x01,
+    HorizontalOnly,
 
     /// <summary>
     /// Represents vertical orientation of text.
     /// </summary>
-    Vertical = 0x10,
+    VerticalOnly,
+
+    /// <summary>
+    /// Represents a random orientation of text, potentially varying from one word to the next.
+    /// </summary>
+    /// <remarks>
+    /// Due to scanning in only one direction (horizontal or vertical) for each word, it may offer a speed advantage.
+    /// </remarks>
+    Random
 }

@@ -21,10 +21,10 @@ public class Entrypoint
 
         WordCloudOptions options = id switch
         {
-            "1" => new(800, 600, MakeDemoFrequency()) 
+            "1" => new(700, 700, MakeDemoFrequency()) 
             { 
                 Random = new Random(1),
-                TextOrientation = TextOrientations.Vertical | TextOrientations.Horizontal,
+                TextOrientation = TextOrientations.Random,
             }, 
             "2" => new(900, 900, MakeDemoFrequency()) 
             { 
@@ -34,7 +34,7 @@ public class Entrypoint
             _ => throw new NotImplementedException(),
         };
 
-        for (int i = 0; i < 1; ++i)
+        for (int i = 0; i < 5; ++i)
         {
             Stopwatch sw = Stopwatch.StartNew();
             WordCloud cloud = WordCloud.Create(options);

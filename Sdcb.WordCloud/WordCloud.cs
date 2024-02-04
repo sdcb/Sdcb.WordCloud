@@ -141,6 +141,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         float fontSize = options.GetInitialFontSize();
 
         using SKPaint fontPaintCache = new() { IsAntialias = false };
+        Traverser traverser = TraverserHelper.CreateTraverser(options.TextOrientation, options.Random);
         TextLine[] items = options.WordScores
             .Select(word =>
             {
@@ -152,7 +153,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
                     {
                         break;
                     }
-                    item = CreateTextItem(options, integralMap, fontSize, cache, fontPaintCache, word);
+                    item = CreateTextItem(options, traverser, integralMap, fontSize, cache, fontPaintCache, word);
                     if (item is null)
                     {
                         fontSize -= options.FontStep;
@@ -167,12 +168,12 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         return new WordCloud(options.Width, options.Height, items, options.Background);
     }
 
-    private static TextLine? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordScore word)
+    private static TextLine? CreateTextItem(WordCloudOptions options, Traverser traverser, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordScore word)
     {
         fontPaintCache.TextSize = fontSize;
         PositionedTextGroup group = new(options.FontManager.GroupTextSingleLinePositioned(word.Word, fontPaintCache).ToArray());
         WordCloudContext ctx = new(options.Random, word.Word, word.Score, fontSize);
-        OrientationRect? orp = FindSuitableOrietationRect(options.GetRandomStartPoint(), group.SizeI, options.TextOrientation, integralMap);
+        OrientationRect? orp = traverser(options.GetRandomStartPoint(), group.SizeI, integralMap);
         if (orp is null)
         {
             return null;
@@ -212,7 +213,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
     /// match the SKBitmap's dimensions for horizontal text orientation or have its dimensions 
     /// swapped for vertical text orientation. The bitmap must be Bgra8888, which supports an alpha channel.
     /// </remarks>
-    internal static unsafe void FillCache(SKBitmap bmp, TextOrientations textOrientations, bool[,] dest, SKRectI destRect)
+    internal static unsafe void FillCache(SKBitmap bmp, HorizontalOrVertical textOrientations, bool[,] dest, SKRectI destRect)
     {
         // Check if bmp is Bgra8888
         if (bmp.ColorType != SKColorType.Bgra8888)
@@ -234,7 +235,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
         uint* srcPtr = (uint*)bmp.GetPixels();
         fixed (bool* destPtr = dest)
         {
-            if (textOrientations == TextOrientations.Horizontal)
+            if (textOrientations == HorizontalOrVertical.Horizontal)
             {
                 for (int y = destRect.Top; y < destRect.Bottom; ++y)
                 {
@@ -250,7 +251,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
                     }
                 }
             }
-            else if (textOrientations == TextOrientations.Vertical)
+            else if (textOrientations == HorizontalOrVertical.Vertical)
             {
                 for (int y = destRect.Top; y < destRect.Bottom; ++y)
                 {
@@ -267,68 +268,5 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
                 }
             }
         }
-    }
-
-    internal static OrientationRect? FindSuitableOrietationRect(
-        SKPointI startPoint,
-        SKSizeI rectSize,
-        TextOrientations allowedOrientations,
-        IntegralMap integralMap)
-    {
-        // Ensure the start point is within bounds
-        if (startPoint.X < 0 || startPoint.X >= integralMap.Width ||
-            startPoint.Y < 0 || startPoint.Y >= integralMap.Height)
-        {
-            throw new ArgumentOutOfRangeException(nameof(startPoint));
-        }
-
-        // Begin traversal at startPoint
-        int cx = startPoint.X, cy = startPoint.Y;
-        bool hasHorizontal = allowedOrientations.HasFlag(TextOrientations.Horizontal);
-        bool hasVertical = allowedOrientations.HasFlag(TextOrientations.Vertical);
-        int width = integralMap.Width;
-        int height = integralMap.Height;
-
-        // Continue indefinitely until we loop back to the start point
-        do
-        {
-            // Yield the current point
-            if (hasHorizontal)
-            {
-                OrientationRect orp = OrientationRect.ExpandHorizontally(new SKPointI(cx, cy), rectSize);
-                if (orp.IsInside(width, height) && integralMap.GetSum(orp.Rect) <= 0)
-                {
-                    return orp;
-                }
-            }
-            if (hasVertical)
-            {
-                OrientationRect orp = OrientationRect.ExpandVertically(new SKPointI(cx, cy), rectSize);
-                if (orp.IsInside(width, height) && integralMap.GetSum(orp.Rect) <= 0)
-                {
-                    return orp;
-                }
-            }
-
-            // Move to the next point
-            cx++;
-
-            // If we reach the end of the row, move to the next row
-            if (cx >= width)
-            {
-                cx = 0;
-                cy++;
-            }
-
-            // If we reach the end of the columns, start back at the top
-            if (cy >= height)
-            {
-                cy = 0;
-            }
-
-            // If after wrapping around we're at the start point, stop traversing
-        } while (cx != startPoint.X || cy != startPoint.Y);
-
-        return null;
     }
 }
