@@ -38,7 +38,7 @@ public class FillCacheTest
         SKRectI rect = SKRectI.Create(1, 1, width, height);
 
         // act
-        WordCloudFactory.FillCache(bmp, TextOrientations.Horizontal, cache, rect);
+        WordCloud.FillCache(bmp, TextOrientations.Horizontal, cache, rect);
 
         // assert
         _console.WriteLine("SKBitmap:");
@@ -75,7 +75,7 @@ public class FillCacheTest
         SKRectI rect = SKRectI.Create(1, 1, height, width);
 
         // act
-        WordCloudFactory.FillCache(bmp, TextOrientations.Vertical, cache, rect);
+        WordCloud.FillCache(bmp, TextOrientations.Vertical, cache, rect);
 
         // assert
         _console.WriteLine("SKBitmap:");
@@ -102,7 +102,7 @@ public class FillCacheTest
         SKRectI rect = SKRectI.Create(0, 0, width, height);
 
         // act & assert
-        var ex = Assert.Throws<ArgumentException>(() => WordCloudFactory.FillCache(bmp, TextOrientations.Horizontal, cache, rect));
+        var ex = Assert.Throws<ArgumentException>(() => WordCloud.FillCache(bmp, TextOrientations.Horizontal, cache, rect));
         Assert.Contains("Bitmap must be of type Bgra8888", ex.Message);
     }
 
@@ -116,7 +116,7 @@ public class FillCacheTest
         SKRectI rect = SKRectI.Create(0, 0, width, height);
 
         // act & assert
-        var ex = Assert.Throws<ArgumentException>(() => WordCloudFactory.FillCache(bmp, TextOrientations.Horizontal, cache, rect));
+        var ex = Assert.Throws<ArgumentException>(() => WordCloud.FillCache(bmp, TextOrientations.Horizontal, cache, rect));
         Assert.Contains("The cache array is not big enough", ex.Message);
     }
 
@@ -142,10 +142,10 @@ public class FillCacheTest
         SKRectI bottomRight = SKRectI.Create(5, 3, height, width);
 
         // act
-        WordCloudFactory.FillCache(bmp, TextOrientations.Horizontal, cache, topLeft);
-        WordCloudFactory.FillCache(bmp, TextOrientations.Horizontal, cache, topRight);
-        WordCloudFactory.FillCache(bmp, TextOrientations.Vertical, cache, bottomLeft);
-        WordCloudFactory.FillCache(bmp, TextOrientations.Vertical, cache, bottomRight);
+        WordCloud.FillCache(bmp, TextOrientations.Horizontal, cache, topLeft);
+        WordCloud.FillCache(bmp, TextOrientations.Horizontal, cache, topRight);
+        WordCloud.FillCache(bmp, TextOrientations.Vertical, cache, bottomLeft);
+        WordCloud.FillCache(bmp, TextOrientations.Vertical, cache, bottomRight);
 
         // assert
         _console.WriteLine("SKBitmap:");
@@ -183,8 +183,8 @@ public class FillCacheTest
         SKRectI r2 = SKRectI.Create(0, 1, height, width);
 
         // act
-        WordCloudFactory.FillCache(bmp, TextOrientations.Horizontal, cache, r1);
-        WordCloudFactory.FillCache(bmp, TextOrientations.Vertical, cache, r2);
+        WordCloud.FillCache(bmp, TextOrientations.Horizontal, cache, r1);
+        WordCloud.FillCache(bmp, TextOrientations.Vertical, cache, r2);
 
         // assert
         _console.WriteLine("SKBitmap:");

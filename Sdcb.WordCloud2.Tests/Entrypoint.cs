@@ -37,7 +37,7 @@ public class Entrypoint
         for (int i = 0; i < 1; ++i)
         {
             Stopwatch sw = Stopwatch.StartNew();
-            WordCloud cloud = WordCloudFactory.Make(options);
+            WordCloud cloud = WordCloud.Create(options);
             Console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
             using SKBitmap bmp = cloud.ToSKBitmap(addBox: false);
             Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
