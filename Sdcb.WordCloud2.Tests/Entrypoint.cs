@@ -24,7 +24,7 @@ public class Entrypoint
             "1" => new(800, 600, MakeDemoFrequency()) 
             { 
                 Random = new Random(1),
-                TextOrientation = TextOrientations.Vertical,
+                TextOrientation = TextOrientations.Vertical | TextOrientations.Horizontal,
             }, 
             "2" => new(900, 900, MakeDemoFrequency()) 
             { 
@@ -43,7 +43,7 @@ public class Entrypoint
             Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
             using FileStream dest = File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png"));
             bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(dest);
-            File.WriteAllText(Path.Combine(_integratedTestOutput, "test.svg"), cloud.ToSvg());
+            //File.WriteAllText(Path.Combine(_integratedTestOutput, "test.svg"), cloud.ToSvg());
         }
     }
 

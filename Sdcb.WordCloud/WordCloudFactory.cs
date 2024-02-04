@@ -20,10 +20,10 @@ public static class WordCloudFactory
         float fontSize = options.GetInitialFontSize();
 
         using SKPaint fontPaintCache = new() { IsAntialias = false };
-        TextItem[] items = options.WordFrequencies
+        TextLine[] items = options.WordFrequencies
             .Select(word =>
             {
-                TextItem? item = null;
+                TextLine? item = null;
                 fontSize = options.FontSizeAccessor(new(options.Random, word.Word, word.Score, fontSize));
                 do
                 {
@@ -43,10 +43,10 @@ public static class WordCloudFactory
             .Where(item => item is not null)
             .ToArray();
 
-        return new WordCloud(options.Width, options.Height, options.FontManager, items, options.Background);
+        return new WordCloud(options.Width, options.Height, items, options.Background);
     }
 
-    private static TextItem? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordScore word)
+    private static TextLine? CreateTextItem(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordScore word)
     {
         fontPaintCache.TextSize = fontSize;
         PositionedTextGroup group = new(options.FontManager.GroupTextSingleLinePositioned(word.Word, fontPaintCache).ToArray());
@@ -57,16 +57,15 @@ public static class WordCloudFactory
             return null;
         }
 
-        return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, word, group, ctx, orp.Value);
+        return FillAndUpdate(options, integralMap, fontSize, cache, fontPaintCache, group, ctx, orp.Value);
     }
 
-    private static TextItem FillAndUpdate(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordScore word, PositionedTextGroup group, WordCloudContext ctx, OrientationRect orp)
+    private static TextLine FillAndUpdate(WordCloudOptions options, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, PositionedTextGroup group, WordCloudContext ctx, OrientationRect orp)
     {
-        TextItem result = new(word.Word, fontSize, options.FontColorAccessor(ctx), orp.Center, orp.ToDegree());
-        SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);
+        using SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);
         FillCache(textLayout, orp.Orientations, cache, orp.Rect);
         integralMap.Update(cache);
-        return result;
+        return new TextLine(group.Texts, fontSize, options.FontColorAccessor(ctx), orp.Center, orp.ToDegree());
     }
 
     /// <summary>

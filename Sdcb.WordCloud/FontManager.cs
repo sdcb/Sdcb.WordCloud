@@ -18,6 +18,8 @@ public class FontManager : IDisposable
 
     public bool IsOwned { get; }
 
+    public bool Disposed { get; private set; } = false;
+
     private readonly Dictionary<int, SKTypeface> _mapping = new();
 
     /// <summary>
@@ -80,7 +82,7 @@ public class FontManager : IDisposable
     /// </summary>
     /// <param name="fullText">The full text.</param>
     /// <returns>An enumerable of <see cref="TextAndFont"/> representing the grouped text and fonts.</returns>
-    public IEnumerable<TextAndFont> GroupTextSingleLine(string fullText)
+    public virtual IEnumerable<TextAndFont> GroupTextSingleLine(string fullText)
     {
         SKTypeface lastfont = null!;
         StringBuilder accString = new(capacity: fullText.Length);
@@ -112,7 +114,7 @@ public class FontManager : IDisposable
     /// <param name="fullText">The full text.</param>
     /// <param name="paint">The SKPaint object used for measuring text.</param>
     /// <returns>An enumerable of <see cref="PositionedText"/> representing the grouped text, fonts, and positions.</returns>
-    public IEnumerable<PositionedText> GroupTextSingleLinePositioned(string fullText, SKPaint paint)
+    public virtual IEnumerable<PositionedText> GroupTextSingleLinePositioned(string fullText, SKPaint paint)
     {
         float left = 0;
         foreach (TextAndFont item in GroupTextSingleLine(fullText))
@@ -131,7 +133,7 @@ public class FontManager : IDisposable
     /// </summary>
     /// <param name="fullText">The full text.</param>
     /// <returns>An enumerable of <see cref="TextAndFont"/> representing the grouped characters and fonts.</returns>
-    public IEnumerable<TextAndFont> GroupCharacters(string fullText)
+    public virtual IEnumerable<TextAndFont> GroupCharacters(string fullText)
     {
         return UnicodeCharacterSplit(fullText)
             .Select(x => new TextAndFont(Char.ConvertFromUtf32(x), MatchFont(x)));
@@ -177,7 +179,7 @@ public class FontManager : IDisposable
     /// <param name="text">The text.</param>
     /// <param name="paint">The SKPaint object used for drawing text.</param>
     /// <returns>The created SKBitmap object representing the text layout.</returns>
-    public SKBitmap CreateTextLayout(string text, SKPaint paint)
+    public virtual SKBitmap CreateTextLayout(string text, SKPaint paint)
     {
         PositionedTextGroup group = new(GroupTextSingleLinePositioned(text, paint).ToArray());
         return group.CreateTextLayout(paint);
@@ -188,11 +190,32 @@ public class FontManager : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (!IsOwned) return;
-        foreach (SKTypeface font in Fonts)
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (Disposed) return;
+
+        if (disposing)
         {
-            font.Dispose();
+            _mapping.Clear();
         }
+
+        if (IsOwned)
+        {
+            foreach (SKTypeface font in Fonts)
+            {
+                font.Dispose();
+            }
+        }
+        Disposed = true;
+    }
+
+    ~FontManager()
+    {
+        Dispose(false);
     }
 }
 
