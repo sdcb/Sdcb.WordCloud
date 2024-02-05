@@ -1,6 +1,4 @@
-﻿using Sdcb.WordClouds;
-
-namespace Sdcb.WordClouds.Tests;
+﻿namespace Sdcb.WordClouds.Tests;
 
 public class UpdateIntegralTest
 {

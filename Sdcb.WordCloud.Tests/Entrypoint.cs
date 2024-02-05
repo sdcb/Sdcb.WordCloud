@@ -21,10 +21,10 @@ public class Entrypoint
 
         WordCloudOptions options = id switch
         {
-            "1" => new(700, 700, MakeDemoFrequency()) 
+            "1" => new(500, 500, MakeDemoFrequency()) 
             { 
                 Random = new Random(1),
-                TextOrientation = TextOrientations.Random,
+                TextOrientation = TextOrientations.PreferVertical,
             }, 
             "2" => new(900, 900, MakeDemoFrequency()) 
             { 
@@ -34,7 +34,7 @@ public class Entrypoint
             _ => throw new NotImplementedException(),
         };
 
-        for (int i = 0; i < 5; ++i)
+        for (int i = 0; i < 1; ++i)
         {
             Stopwatch sw = Stopwatch.StartNew();
             WordCloud cloud = WordCloud.Create(options);
@@ -43,7 +43,8 @@ public class Entrypoint
             Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
             using FileStream dest = File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png"));
             bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(dest);
-            //File.WriteAllText(Path.Combine(_integratedTestOutput, "test.svg"), cloud.ToSvg());
+            File.WriteAllText(Path.Combine(_integratedTestOutput, "test.svg"), cloud.ToSvg());
+            File.WriteAllText(Path.Combine(_integratedTestOutput, "test.json"), cloud.ToJson());
         }
     }
 

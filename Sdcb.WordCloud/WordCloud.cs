@@ -112,7 +112,8 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
 
                 // Adding text element with applied styles
                 svgBuilder.AppendLine(
-                    $"<text x=\"{-line.TextGroup.Size.Width / 2}\" y=\"{positionedText.Width - line.TextGroup.Size.Width / 2 - positionedText.Left}\" " +
+                    $"<text x=\"{-line.TextGroup.Size.Width / 2 + positionedText.Left}\" y=\"{-line.TextGroup.Size.Height / 2}\" " +
+                    $"dominant-baseline=\"text-before-edge\" " +
                     $"fill=\"{color}\" font-family=\"{positionedText.Typeface.FamilyName}\" font-size=\"{line.FontSize}px\">" +
                     $"{System.Security.SecurityElement.Escape(positionedText.Text)}</text>");
             }
