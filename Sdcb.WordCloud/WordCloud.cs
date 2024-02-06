@@ -187,7 +187,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
     {
         using SKBitmap textLayout = group.CreateTextLayout(fontPaintCache);
         FillCache(textLayout, orp.Orientations, cache, orp.Rect);
-        integralMap.Update(cache);
+        integralMap.Update(cache, orp.Rect.Left, orp.Rect.Top);
         return new TextLine(group, fontSize, options.FontColorAccessor(ctx), orp.Center, orp.ToDegree());
     }
 
