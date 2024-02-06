@@ -97,20 +97,20 @@ internal static class TraverserHelper
                 }
             }
 
-            // Move to the next point
-            cx++;
+            // Move to the next point in vertical direction first
+            cy++;
 
-            // If we reach the end of the row, move to the next row
-            if (cx >= width)
-            {
-                cx = 0;
-                cy++;
-            }
-
-            // If we reach the end of the columns, start back at the top
+            // If we reach the end of the column, move to the next column
             if (cy >= height)
             {
                 cy = 0;
+                cx++;
+            }
+
+            // If we reach the end of the rows, start back at the left
+            if (cx >= width)
+            {
+                cx = 0;
             }
 
             // If after wrapping around we're at the start point, stop traversing
@@ -179,20 +179,20 @@ internal static class TraverserHelper
                 return orp;
             }
 
-            // Move to the next point
-            cx++;
+            // Move to the next point in vertical direction first
+            cy++;
 
-            // If we reach the end of the row, move to the next row
-            if (cx >= width)
-            {
-                cx = 0;
-                cy++;
-            }
-
-            // If we reach the end of the columns, start back at the top
+            // If we reach the end of the column, move to the next column
             if (cy >= height)
             {
                 cy = 0;
+                cx++;
+            }
+
+            // If we reach the end of the rows, start back at the left
+            if (cx >= width)
+            {
+                cx = 0;
             }
 
             // If after wrapping around we're at the start point, stop traversing

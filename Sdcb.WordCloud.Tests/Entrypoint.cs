@@ -21,7 +21,7 @@ public class Entrypoint
 
         WordCloudOptions options = id switch
         {
-            "1" => new(500, 500, MakeDemoFrequency()) 
+            "1" => new(800, 600, MakeDemoFrequency()) 
             { 
                 Random = new Random(1),
                 TextOrientation = TextOrientations.PreferVertical,
