@@ -1,29 +1,28 @@
 <Query Kind="Program">
-  <NuGetReference Version="2.0.0">Sdcb.WordCloud</NuGetReference>
+  <NuGetReference Version="2.0.0" Prerelease="true">Sdcb.WordCloud</NuGetReference>
+  <Namespace>LINQPad.Controls</Namespace>
   <Namespace>Sdcb.WordClouds</Namespace>
   <Namespace>SkiaSharp</Namespace>
+  <Namespace>System.Net.Http</Namespace>
+  <Namespace>System.Text.Json</Namespace>
 </Query>
 
 void Main()
 {
-	TextOrientations[] orientations = 
-	[
-		TextOrientations.PreferHorizontal, // default
-		TextOrientations.PreferVertical, 
-		TextOrientations.HorizontalOnly,
-		TextOrientations.VerticalOnly, 
-		TextOrientations.Random,
-	];
-	foreach (var o in orientations)
+	WordCloud wc = WordCloud.Create(new WordCloudOptions(900, 900, MakeDemoScore())
 	{
-		WordCloud wc = WordCloud.Create(new WordCloudOptions(600, 600, MakeDemoScore())
-		{
-			TextOrientation = o,
-		});
-		byte[] pngBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Png, 100).AsSpan().ToArray();
-		//File.WriteAllBytes($"{o}.png", pngBytes);
-		Util.Image(pngBytes, Util.ScaleMode.Unscaled).Dump(o.ToString());
-	}
+		FontManager = new FontManager([SKTypeface.FromFamilyName("Times New Roman")]),
+		Mask = MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(
+			new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
+			SKColors.White)
+	});
+	string json = wc.ToJson();
+	//JsonDocument.Parse(json).Dump();
+
+	// can convert back from generated json
+	WordCloud wc2 = WordCloud.FromJson(json);
+	//File.WriteAllText($"json-convert-back.svg", wc2.ToSvg());
+	new Svg(wc2.ToSvg(), wc2.Width, wc2.Height).Dump();
 }
 
 static IEnumerable<WordScore> MakeDemoScore()
@@ -33,7 +32,7 @@ static IEnumerable<WordScore> MakeDemoScore()
         112	Retrieved
         88	form
         78	species
-        74	meteorology
+        74	meteorolog
         66	type
         62	ed.
         54	edit

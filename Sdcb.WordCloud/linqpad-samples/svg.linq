@@ -1,9 +1,9 @@
 <Query Kind="Program">
-  <NuGetReference Prerelease="true">Sdcb.WordCloud</NuGetReference>
+  <NuGetReference Version="2.0.0" Prerelease="true">Sdcb.WordCloud</NuGetReference>
+  <Namespace>LINQPad.Controls</Namespace>
   <Namespace>Sdcb.WordClouds</Namespace>
   <Namespace>SkiaSharp</Namespace>
   <Namespace>System.Net.Http</Namespace>
-  <Namespace>LINQPad.Controls</Namespace>
 </Query>
 
 void Main()
@@ -15,6 +15,7 @@ void Main()
 			new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
 			SKColors.White)
 	});
+	//File.WriteAllText($"json-convert-back.svg", wc.ToSvg());
 	new Svg(wc.ToSvg(), wc.Width, wc.Height).Dump();
 }
 

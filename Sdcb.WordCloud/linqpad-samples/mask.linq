@@ -1,5 +1,5 @@
 <Query Kind="Program">
-  <NuGetReference Prerelease="true">Sdcb.WordCloud</NuGetReference>
+  <NuGetReference Version="2.0.0" Prerelease="true">Sdcb.WordCloud</NuGetReference>
   <Namespace>Sdcb.WordClouds</Namespace>
   <Namespace>SkiaSharp</Namespace>
   <Namespace>System.Net.Http</Namespace>
@@ -14,8 +14,9 @@ void Main()
 			new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
 			SKColors.White)
 	});
-	byte[] webpBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Webp, 70).AsSpan().ToArray();
-	Util.Image(webpBytes, Util.ScaleMode.Unscaled).Dump();
+	byte[] pngBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Png, 100).AsSpan().ToArray();
+	//File.WriteAllBytes($"mask.png", pngBytes);
+	Util.Image(pngBytes, Util.ScaleMode.Unscaled).Dump();
 }
 
 static IEnumerable<WordScore> MakeDemoScore()
