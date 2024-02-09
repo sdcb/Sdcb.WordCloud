@@ -1,4 +1,4 @@
-# Sdcb.WordCloud ![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
+# Sdcb.WordCloud [![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
 
 **[English](README.md)** | **简体中文**
 
