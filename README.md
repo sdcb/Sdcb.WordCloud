@@ -1,25 +1,152 @@
 # Sdcb.WordCloud [![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
-Generate WordCloud image from .NET/.NET Core
 
-# Example
-![](./assets/demo.png)
+**Sdcb.WordCloud** is a versatile, cross-platform library for generating word cloud images, SVGs, or JSON data based on word frequencies. It harnesses the power of SkiaSharp for graphical operations, ensuring high performance and quality without relying on System.Drawing. This makes it an excellent choice for applications running across various platforms, including server-side scenarios where GUI libraries might not be available.
 
-# Usage
+## Key Features
+
+- **Cross-platform compatibility**: Works across different operating systems without dependency on System.Drawing.
+- **Multiple output formats**: Supports generating word clouds as images, SVGs, or JSON data.
+- **Flexible configuration**: Customize your word clouds with various options, including text orientations, fonts, and masks.
+- **Open-source**: Freely available under the MIT license, welcoming contributions and modifications.
+
+## Installation
+
+To start using Sdcb.WordCloud in your project, install it via NuGet:
+
+```bash
+dotnet add package Sdcb.WordCloud
+```
+
+## Usage Example
+
+Below are some examples showcasing different capabilities of the Sdcb.WordCloud library. Note: The demonstrations use a shared word frequency list, as provided in the method `MakeDemoScore()`.
+
+### Example 1: Different Text Orientations
+
+This example demonstrates creating word clouds with 5 different text orientations.
+
 ```csharp
-// Initall-Package Sdcb.WordCloud
-var wc = new WordCloud(1024, 768);
-var ids = GetText()
-    .Split("\n")
-    .Select(x => x.Trim().Split("\t"))
-    .Select(x => new WordFrequency(x[1], int.Parse(x[0])));
+void Main()
+{
+	TextOrientations[] orientations = 
+	[
+		TextOrientations.PreferHorizontal, // default
+		TextOrientations.PreferVertical, 
+		TextOrientations.HorizontalOnly,
+		TextOrientations.VerticalOnly, 
+		TextOrientations.Random,
+	];
+	foreach (var o in orientations)
+	{
+		WordCloud wc = WordCloud.Create(new WordCloudOptions(600, 600, MakeDemoScore())
+		{
+			TextOrientation = o,
+		});
+		byte[] pngBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Png, 100).AsSpan().ToArray();
+		File.WriteAllBytes($"{o}.png", pngBytes);
+	}
+}
+```
 
-wc.Draw(ids).Save("test.png");
+![](./assets/text_orientations.png)
 
-string GetText() => @"459	cloud
+### Example 2: Converting Word Cloud to JSON and Back
+
+Generate a word cloud, convert it to JSON, and then reconstruct it to demonstrate the flexibility of manipulating word cloud data.
+
+```csharp
+void Main()
+{
+	WordCloud wc = WordCloud.Create(new WordCloudOptions(900, 900, MakeDemoScore())
+	{
+		FontManager = new FontManager([SKTypeface.FromFamilyName("Times New Roman")]),
+		Mask = MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(
+			new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
+			SKColors.White)
+	});
+	string json = wc.ToJson();
+	
+	WordCloud wc2 = WordCloud.FromJson(json);
+	new Svg(wc2.ToSvg(), wc.Width, wc.Height).Dump();
+}
+```
+
+**Note**: This example illustrates how a word cloud's data can be stored in and reconstructed from JSON, enabling easy sharing and modification.
+
+![](./assets/wordcloud_json.png)
+
+### Example 3: Applying a Mask
+
+Creating a word cloud with a mask, allowing words to fill a specific shape.
+
+```csharp
+void Main()
+{
+	WordCloud wc = WordCloud.Create(new WordCloudOptions(900, 900, MakeDemoScore())
+	{
+		FontManager = new FontManager([SKTypeface.FromFamilyName("Times New Roman")]),
+		Mask = MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(
+			new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
+			SKColors.White)
+	});
+	byte[] webpBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Webp, 70).AsSpan().ToArray();
+	Util.Image(webpBytes, Util.ScaleMode.Unscaled).Dump();
+}
+```
+
+![](./assets/wordcloud_mask.png)
+
+### Example 4: Using a Specific Font
+
+Demonstrates how to utilize a specific font for the word cloud generation.
+
+```csharp
+void Main()
+{
+	WordCloud wc = WordCloud.Create(new WordCloudOptions(600, 600, MakeDemoScore())
+	{
+		FontManager = new FontManager([SKTypeface.FromFamilyName("Consolas")])
+	});
+	byte[] webpBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Webp, 70).AsSpan().ToArray();
+	Util.Image(webpBytes, Util.ScaleMode.Unscaled).Dump();
+}
+```
+
+![](./assets/wordcloud_font.png)
+
+### Example 5: Generating SVG Output
+
+Shows how to generate an SVG from a word cloud, useful for web applications where scalability is crucial.
+
+```csharp
+void Main()
+{
+	WordCloud wc = WordCloud.Create(new WordCloudOptions(900, 900, MakeDemoScore())
+	{
+		FontManager = new FontManager([SKTypeface.FromFamilyName("Times New Roman")]),
+		Mask = MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(
+			new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
+			SKColors.White)
+	});
+	new Svg(wc.ToSvg(), wc.Width, wc.Height).Dump();
+}
+```
+
+![](./assets/wordcloud_svg.png)
+
+### Shared Word Frequency List
+
+All examples use the following word frequency list:
+
+```csharp
+static IEnumerable<WordScore> MakeDemoScore()
+{
+	string text = """
+        459	cloud
         112	Retrieved
         88	form
         78	species
-        74	meteorology
+        74	meteorolog
         66	type
         62	ed.
         54	edit
@@ -209,906 +336,15 @@ string GetText() => @"459	cloud
         11	thunderstorm
         11	tornado
         11	visible
-        10	D.
-        10	December
-        10	PSC
-        10	above
-        10	active
-        10	adiabatic
-        10	both
-        10	characteristic
-        10	cloudy
-        10	cumulonimbiform
-        10	even
-        10	found
-        10	ft
-        10	genus-type
-        10	however
-        10	ice
-        10	indicate
-        10	informer
-        10	limit
-        10	map
-        10	mass
-        10	mediocris
-        10	no
-        10	point
-        10	sky
-        10	small
-        10	some
-        9	Ac
-        9	Administration
-        9	June
-        9	a.
-        9	background
-        9	below
-        9	cover
-        9	deep
-        9	develop
-        9	dew
-        9	floccus
-        9	given
-        9	grey
-        9	larger
-        9	local
-        9	model
-        9	nacreous
-        9	nature
-        9	pp.
-        9	season
-        9	shower
-        9	snow
-        9	stability
-        9	time
-        9	virga
-        8	Aeronautics
-        8	Cc
-        8	H.
-        8	Howard
-        8	Society
-        8	area
-        8	cb
-        8	combine
-        8	fall
-        8	field
-        8	first
-        8	lower
-        8	major
-        8	moisture
-        8	nebulosus
-        8	normal
-        8	patches
-        8	ragged
-        8	sheet
-        8	similar
-        8	strong
-        8	such
-        8	three
-        8	tropics
-        8	two
-        7	C.
-        7	Cu
-        7	Influence
-        7	Press
-        7	R.
-        7	S.
-        7	Saturn
-        7	Sc
-        7	around
-        7	arranged
-        7	before
-        7	between
-        7	center
-        7	clear
-        7	dependent
-        7	divided
-        7	due
-        7	edge
-        7	evaporate
-        7	fire
-        7	give
-        7	hail
-        7	horizontal
-        7	humilis
-        7	illuminated
-        7	journal
-        7	lenticularis
-        7	list
-        7	middle
-        7	mother
-        7	particles
-        7	planet
-        7	pole
-        7	prefix
-        7	rise
-        7	source
-        7	sufficient
-        7	thick
-        7	thin
-        7	upper
-        7	wave
-        6	Etymology
-        6	Geographic
-        6	Online
-        6	PMID
-        6	September
-        6	St
-        6	State
-        6	WMO
-        6	acid
-        6	after
-        6	always
-        6	amount
-        6	being
-        6	called
-        6	century
-        6	close
-        6	commonly
-        6	comprise
-        6	current
-        6	distribution
-        6	elements
-        6	embedded
-        6	especially
-        6	extratropical
-        6	feedback
-        6	frontal
-        6	grow
-        6	heat
-        6	history
-        6	image
-        6	latitude
-        6	like
-        6	low-pressure
-        6	mainly
-        6	mist
-        6	moon
-        6	nomenclature
-        6	opaque
-        6	out
-        6	pannus
-        6	parallel
-        6	part
-        6	partly
-        6	play
-        6	refers
-        6	require
-        6	roll
-        6	same
-        6	separate
-        6	shades
-        6	subdivided
-        6	subtropics
-        6	typical
-        6	ul
-        6	up
-        6	vary
-        6	vortex
-        6	were
-        6	without
-        5	.citation
-        5	American
-        5	Compared
-        5	Cs
-        5	G.
-        5	I.
-        5	Jupiter
-        5	Mars
-        5	N.
-        5	Observatory
-        5	T.
-        5	Uranus
-        5	absorb
-        5	according
-        5	ancient
-        5	approximate
-        5	article
-        5	blue
-        5	cold
-        5	composite
-        5	considered
-        5	continue
-        5	culture
-        5	dense
-        5	desert
-        5	detached
-        5	do
-        5	does
-        5	drop
-        5	enough
-        5	except
-        5	exoplanet
-        5	extensive
-        5	flat
-        5	forecasts
-        5	formal
-        5	free
-        5	free-convective
-        5	greater
-        5	greenhouse
-        5	heap
-        5	hole
-        5	homosphere
-        5	humid
-        5	incus
-        5	index
-        5	inherit
-        5	initial
-        5	intense
-        5	lightning
-        5	media
-        5	method
-        5	much
-        5	nitric
-        5	nonconvective
-        5	order
-        5	orographic
-        5	patterns
-        5	possible
-        5	potential
-        5	presence
-        5	prevalent
-        5	radiatus
-        5	reach
-        5	regions
-        5	respective
-        5	right
-        5	scatter
-        5	shape
-        5	shear
-        5	sight
-        5	single
-        5	so
-        5	street
-        5	sunlight
-        5	sunset
-        5	supercooled
-        5	therefore
-        5	titan
-        5	translucidus
-        5	uncinus
-        5	upward
-        5	various
-        5	veil
-        5	volutus
-        5	way
-        5	wikipedia
-        4	.1em
-        4	Ackerman
-        4	Aristotle
-        4	Associated
-        4	Cambridge
-        4	Category
-        4	Colorado
-        4	Divergence
-        4	Exodus
-        4	Extraterrestrial
-        4	GJ
-        4	Guide
-        4	L.
-        4	Neptune
-        4	Office
-        4	Robert
-        4	Service
-        4	USA
-        4	York
-        4	added
-        4	agent
-        4	ahead
-        4	aloft
-        4	although
-        4	arcus
-        4	ascending
-        4	background-position
-        4	bands
-        4	black
-        4	capillatus
-        4	carry
-        4	cas
-        4	case
-        4	chance
-        4	chemical
-        4	circulation
-        4	city
-        4	collects
-        4	column
-        4	complete
-        4	concentrated
-        4	cumulogenitus
-        4	dark
-        4	decrease
-        4	detail
-        4	detected
-        4	display
-        4	downward
-        4	dust
-        4	dynamics
-        4	environment
-        4	filaments
-        4	flo
-        4	follow
-        4	force
-        4	frozen
-        4	further
-        4	genitus
-        4	having
-        4	hierarchy
-        4	homogenitus
-        4	jetstream
-        4	least
-        4	lenticular
-        4	line
-        4	look
-        4	low-
-        4	luminance
-        4	made
-        4	methane
-        4	mix
-        4	motion
-        4	mountain
-        4	mutatus
-        4	no-repeat
-        4	non-convective
-        4	officially
-        4	opacity-based
-        4	opacus
-        4	orange
-        4	particular
-        4	penetrate
-        4	philosopher
-        4	photography
-        4	pileus
-        4	pollution
-        4	present
-        4	rare
-        4	rather
-        4	relative
-        4	ridge
-        4	ripple
-        4	rm
-        4	scientific
-        4	sign
-        4	significant
-        4	south
-        4	specific
-        4	spissatus
-        4	spread
-        4	study
-        4	subdivision
-        4	subsides
-        4	subtype
-        4	sunrise
-        4	tail
-        4	take
-        4	through
-        4	thumb
-        4	total
-        4	translucent
-        4	twilight
-        4	upload.wikimedia.org
-        4	url
-        4	van
-        4	warmer
-        4	whirl
-        4	winter
-        4	within
-        4	word
-        4	work
-        3	.cs1-registration
-        3	.cs1-subscription
-        3	Another
-        3	Aristophanes
-        3	David
-        3	Downburst
-        3	England
-        3	English
-        3	Geophysics
-        3	Glossary
-        3	Greek
-        3	ICAO
-        3	II
-        3	Ice
-        3	Jet
-        3	K.
-        3	Karen
-        3	Life
-        3	Machine
-        3	Measurement
-        3	Met
-        3	Meteorologica
-        3	Mystery
-        3	Ns
-        3	O.
-        3	OCLC
-        3	One
-        3	Paul
-        3	Popular
-        3	Release
-        3	Scientist
-        3	Springer
-        3	Venus
-        3	Views
-        3	Wayback
-        3	West
-        3	Wet-bulb
-        3	ability
-        3	achieve
-        3	albedo
-        3	arXiv
-        3	authors
-        3	believed
-        3	billows
-        3	bluish
-        3	bottom
-        3	boundary
-        3	breaks
-        3	bright
-        3	buildups
-        3	cap
-        3	cell
-        3	certain
-        3	characterized
-        3	cloudscape
-        3	coldest
-        3	comprehensive
-        3	consisting
-        3	contains
-        3	content
-        3	data
-        3	degrees
-        3	derive
-        3	described
-        3	designated
-        3	differential
-        3	diffuse
-        3	distinguishes
-        3	disturbed
-        3	drizzle
-        3	duplicatus
-        3	enhance
-        3	entire
-        3	equator
-        3	example
-        3	extend
-        3	favor
-        3	flumen
-        3	font-size
-        3	forest
-        3	four
-        3	fraction
-        3	future
-        3	gases
-        3	grains
-        3	great
-        3	green
-        3	had
-        3	hemispheres
-        3	highly
-        3	honeycomb
-        3	horizon
-        3	human
-        3	identification
-        3	infrared
-        3	intortus
-        3	inversion
-        3	involve
-        3	irregular
-        3	isolated
-        3	just
-        3	km
-        3	la
-        3	lack
-        3	lacunosus
-        3	late
-        3	latter
-        3	len
-        3	less
-        3	link
-        3	liquid
-        3	mamma
-        3	mechanism
-        3	merge
-        3	mission
-        3	moist
-        3	month
-        3	murus
-        3	nearly
-        3	newly
-        3	none
-        3	north
-        3	northern
-        3	nuclei
-        3	number
-        3	occurrence
-        3	organized
-        3	pattern-based
-        3	pillar
-        3	planetary
-        3	praecipitatio
-        3	promote
-        3	properties
-        3	purpose
-        3	read
-        3	reason
-        3	recognized
-        3	red
-        3	related
-        3	restricted
-        3	rows
-        3	scheme
-        3	sea
-        3	section
-        3	since
-        3	space.com
-        3	spectrum
-        3	standard
-        3	str
-        3	streaks
-        3	summer
-        3	support
-        3	tall
-        3	tcu
-        3	theory
-        3	too
-        3	tropopause
-        3	twisted
-        3	undulatus
-        3	upward-growing
-        3	variable
-        3	varieties'
-        3	von
-        3	well
-        3	wet
-        3	whose
-        3	wide
-        3	widespread
-        3	wisps
-        2	0.2em
-        2	19th
-        2	A.P
-        2	Academic
-        2	Actinoform
-        2	Adding
-        2	Aerographer
-        2	Anticyclone
-        2	Approaches
-        2	Astronomy
-        2	Astrophysics
-        2	Australia
-        2	Aviation
-        2	BC
-        2	Bart
-        2	Belts
-        2	Benneke
-        2	Bibliography
-        2	Blyth
-        2	California
-        2	Cassini
-        2	Chemistry
-        2	Chicago
-        2	Cite
-        2	CiteSeerX
-        2	Civil
-        2	Climatology
-        2	Cloud-based
-        2	Conference
-        2	Contrail
-        2	Corfidi
-        2	Corporation
-        2	Cowan
-        2	Daily
-        2	Deming
-        2	Dictionary
-        2	Dry
-        2	Dunlop
-        2	ESO
-        2	Ecosystem
-        2	Eleanor
-        2	Elementary
-        2	Engineering
-        2	Equivalent
-        2	External
-        2	F.
-        2	Fox
-        2	France
-        2	Freezing
-        2	French
-        2	Fundamentals
-        2	Garrett
-        2	Geology
-        2	Graphics
-        2	Homeier
-        2	Hurk
-        2	IAS
-        2	III
-        2	IV
-        2	Image
-        2	Independent
-        2	India
-        2	Institute
-        2	Intertropical
-        2	Israelites
-        2	KNMI
-        2	Knutson
-        2	L25
-        2	LI
-        2	Laboratory
-        2	Lake
-        2	Lamarck
-        2	Land-Atmosphere
-        2	Luke
-        2	MODIS
-        2	Michael
-        2	Mojave
-        2	Move
-        2	Non-adiabatic
-        2	Old
-        2	Only
-        2	PMC
-        2	PMF
-        2	Pacific
-        2	Phillips
-        2	Pilotfriend
-        2	Plymouth
-        2	Precipitation-based
-        2	Program
-        2	Project
-        2	Ray
-        2	Recent
-        2	Report
-        2	River
-        2	Roche
-        2	Royal
-        2	Scott
-        2	Seager
-        2	Seeds
-        2	Sensitivity
-        2	Silla
-        2	Socrates
-        2	Stephen
-        2	Steven
-        2	Supercell
-        2	Taylor
-        2	Tellus
-        2	Text
-        2	Theodore
-        2	Thermodynamic
-        2	Today
-        2	Toronto
-        2	Virtual
-        2	Yahweh
-        2	Yellowish
-        2	Z.
-        2	accompanied
-        2	accumulation
-        2	addition
-        2	adjacent
-        2	adopted
-        2	aerosol
-        2	affect
-        2	aircraft
-        2	allow
-        2	almost
-        2	alone
-        2	alto-
-        2	ambient
-        2	ammonia
-        2	analysis
-        2	angle
-        2	anvil
-        2	anywhere
-        2	applicable
-        2	applies
-        2	asperitas
-        2	attached
-        2	average
-        2	back
-        2	basic
-        2	basis
-        2	beaver
-        2	behavior
-        2	best
-        2	blizzard
-        2	breasts
-        2	broad
-        2	broken
-        2	buoyancy
-        2	calvus
-        2	came
-        2	cataractagenitus
-        2	cauda
-        2	cavum
-        2	circular
-        2	cirro-
-        2	colder
-        2	complex
-        2	confirms
-        2	consequence
-        2	considerable
-        2	contrast
-        2	coupling
-        2	create
-        2	creation
-        2	darker
-        2	day
-        2	daytime
-        2	de
-        2	deck
-        2	defined
-        2	deities
-        2	den
-        2	density
-        2	depth
-        2	descriptive
-        2	despite
-        2	determined
-        2	dimming
-        2	dioxide
-        2	direct
-        2	directly
-        2	discernible
-        2	downdrafts
-        2	efficient
-        2	either
-        2	elevated
-        2	ends
-        2	energy
-        2	enter
-        2	evaluate
-        2	events
-        2	eventually
-        2	evidence
-        2	evolution
-        2	exist
-        2	extreme-level
-        2	far
-        2	farther
-        2	fib
-        2	five
-        2	flammagenitus
-        2	flu
-        2	fluctus
-        2	fluid
-        2	foreground
-        2	formerly
-        2	full
-        2	funnel
-        2	glory
-        2	halos
-        2	happens
-        2	happiness
-        2	haze
-        2	heavier
-        2	held
-        2	help
-        2	homomutatus
-        2	hydrometeors
-        2	ice-crystal
-        2	impossible
-        2	incident
-        2	inflow
-        2	interactions
-        2	land
-        2	large-scale
-        2	largest
-        2	limited-convective
-        2	little
-        2	location
-        2	long
-        2	longer
-        2	loses
-        2	make
-        2	mammatus
-        2	marine
-        2	maximum
-        2	meaning
-        2	metaphor
-        2	meteorologists
-        2	meteors
-        2	microburst
-        2	midlevel
-        2	might
-        2	modern
-        2	morning
-        2	neb
-        2	net
-        2	night
-        2	now
-        2	obscure
-        2	occasion
-        2	occupy
-        2	off-white
-        2	onlyaccessory
-        2	opacity
-        2	open
-        2	otherwise
-        2	outer
-        2	outflow
-        2	outline
-        2	own
-        2	parcel
-        2	parent
-        2	partial
-        2	phenomenon
-        2	pink
-        2	pixel
-        2	plants
-        2	poet
-        2	poorly
-        2	portal
-        2	powerful
-        2	product
-        2	provide
-        2	published
-        2	push
-        2	quickly
-        2	raise
-        2	rate
-        2	religion
-        2	remain
-        2	response
-        2	reveal
-        2	rock
-        2	role
-        2	rotate
-        2	roughly
-        2	scarce
-        2	side
-        2	silvagenitus
-        2	simple
-        2	size
-        2	smaller
-        2	smoke
-        2	somewhat
-        2	southern
-        2	span
-        2	special
-        2	spring
-        2	stream
-        2	sulfur
-        2	surface-based
-        2	suspended
-        2	ten
-        2	terminology
-        2	thereby
-        2	thicker
-        2	thought
-        2	throughout
-        2	thunder
-        2	tint
-        2	topics
-        2	translated
-        2	transmitted
-        2	true
-        2	tuba
-        2	tufts
-        2	turbulence
-        2	turn
-        2	turrets
-        2	uncertainty
-        2	under
-        2	undergo
-        2	underneath
-        2	undertaken
-        2	undulating
-        2	unless
-        2	updraft
-        2	velum
-        2	vertebratus
-        2	vol
-        2	volcanic
-        2	vortices
-        2	vsc.edu
-        2	wall
-        2	water-ice
-        2	wavelengths
-        2	wavy
-        2	weak
-        2	while
-        2	whole
-        2	wildfires
-        2	yielding
-        2	étages";
+        """;
+
+	return text
+		.Split("\n")
+		.Select(x => x.Trim().Split("\t"))
+		.Select(x => new WordScore(Score: int.Parse(x[0]), Word: x[1]));
+}
 ```
 
-This project is initialy ported from https://archive.codeplex.com/?p=wordcloud
+## License
+
+Sdcb.WordCloud is open-source software licensed under the MIT license.
