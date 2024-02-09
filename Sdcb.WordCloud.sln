@@ -3,14 +3,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C6C6195F-FE84-4BE2-8C68-B69ADDBEE86E}"
-	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdcb.WordCloud", "Sdcb.WordCloud\Sdcb.WordCloud.csproj", "{314F25AA-98F6-4882-BC5C-98C208CE97E2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdcb.WordCloud.Tests", "Sdcb.WordCloud.Tests\Sdcb.WordCloud.Tests.csproj", "{54BD7EBC-0C0E-4C61-A529-C99B7EDA190B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{B20D6177-2E4A-4968-9C0D-797AF9A1ECEC}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\00-common.linq = scripts\00-common.linq
+		scripts\01-build-packages.linq = scripts\01-build-packages.linq
+		scripts\02-publish-proget-nuget.linq = scripts\02-publish-proget-nuget.linq
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{A40EC07C-8564-4EEA-B993-A4A62259FB28}"
+	ProjectSection(SolutionItems) = preProject
+		assets\demo.png = assets\demo.png
+		assets\icon.png = assets\icon.png
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

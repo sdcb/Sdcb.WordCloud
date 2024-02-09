@@ -1,16 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Authors>sdcb</Authors>
-    <Version>2.0-preview.2</Version>
     <Description>Generate WordCloud image from .NET/.NET Core</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/sdcb/Sdcb.WordCloud</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sdcb/Sdcb.WordCloud</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>dotnet;dotnet-core;wordcloud;linqpad-samples</PackageTags>
-    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
+    <PackageTags>sdcb;wordcloud;linqpad-samples</PackageTags>
     <Copyright>MIT</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
