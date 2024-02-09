@@ -1,38 +1,38 @@
-# Sdcb.WordCloud [![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
+# Sdcb.WordCloud ![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
 
-**English** | **[简体中文](README_CN.md)**
+**[English](README.md)** | **简体中文**
 
-**Sdcb.WordCloud** is a versatile, cross-platform library for generating word cloud images, SVGs, or JSON data based on word frequencies. It harnesses the power of SkiaSharp for graphical operations, ensuring high performance and quality without relying on System.Drawing. This makes it an excellent choice for applications running across various platforms, including server-side scenarios where GUI libraries might not be available.
+**Sdcb.WordCloud** 是一个多功能、跨平台的库，用于根据词频生成文字云图片、`SVG`或`JSON`数据。它利用`SkiaSharp`进行图形操作，确保了高性能和质量，而不依赖于`System.Drawing`。这使得它成为在各种平台上运行的应用程序的绝佳选择，包括GUI库可能不可用的服务器端场景。
 
-## Key Features
+## 主要特性
 
-- **Cross-platform compatibility**: Works across different operating systems without dependency on `System.Drawing`.
-- **Multiple output formats**: Supports generating word clouds as images, SVGs, or JSON data.
-- **Flexible configuration**: Customize your word clouds with various options, including text orientations, fonts, and masks.
-- **Open-source**: Freely available under the MIT license, welcoming contributions and modifications.
+- **跨平台兼容性**：在不同操作系统上工作，无需依赖于`System.Drawing`。
+- **多种输出格式**：支持生成图片、SVG或JSON数据的文字云。
+- **灵活配置**：通过各种选项自定义您的文字云，包括文本方向、字体和遮罩。
+- **开源**：在MIT许可下自由提供，欢迎贡献和修改。
 
-## Installation
+## 安装
 
-To start using `Sdcb.WordCloud` in your project, install it via NuGet:
+要在项目中开始使用`Sdcb.WordCloud`，请通过NuGet安装：
 
 ```bash
 dotnet add package Sdcb.WordCloud
 ```
 
-## Usage Example
+## 使用示例
 
-Below are some examples showcasing different capabilities of the Sdcb.WordCloud library. Note: The demonstrations use a shared word frequency list, as provided in the method `MakeDemoScore()`.
+以下是一些展示Sdcb.WordCloud库不同功能的示例。注意：演示使用共享的词频列表，如方法`MakeDemoScore()`所提供的，所有代码都使用了C# 12的语法。
 
-### Example 1: Different Text Orientations
+### 示例1：不同文本方向
 
-This example demonstrates creating word clouds with 5 different text orientations.
+该示例演示了创建具有5种不同文本方向的文字云。
 
 ```csharp
 void Main()
 {
     TextOrientations[] orientations = 
     [
-        TextOrientations.PreferHorizontal, // default
+        TextOrientations.PreferHorizontal, // 默认
         TextOrientations.PreferVertical, 
         TextOrientations.HorizontalOnly,
         TextOrientations.VerticalOnly, 
@@ -53,9 +53,9 @@ void Main()
 ![image](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/ba754b19-82f4-4a26-9246-5a33007fbbcd)
 
 
-### Example 2: Converting Word Cloud to JSON and Back
+### 示例2：将文字云转换为JSON并反转
 
-Generate a word cloud, convert it to JSON, and then reconstruct it to demonstrate the flexibility of manipulating word cloud data.
+生成文字云，将其转换为JSON，然后重构它，以展示操作文字云数据的灵活性。
 
 ```csharp
 void Main()
@@ -70,19 +70,19 @@ void Main()
     string json = wc.ToJson();
     Console.WriteLine(json);
 
-    // can convert back from generated json
+    // 可以从生成的json转换回来
     WordCloud wc2 = WordCloud.FromJson(json);
     File.WriteAllText($"json-convert-back.svg", wc2.ToSvg());
 }
 ```
 
-**Note**: This example illustrates how a word cloud's data can be stored in and reconstructed from JSON, enabling easy sharing and modification.
+**注意**：此示例说明了文字云数据可以如何存储在JSON中并从JSON重构，方便分享和修改。
 
 ![image](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/8d7a7c5d-680c-49c7-ba4d-83c11436269e)
 
-### Example 3: Applying a Mask
+### 示例3：应用遮罩
 
-Creating a word cloud with a mask, allowing words to fill a specific shape.
+创建一个带有遮罩的文字云，让单词填充特定形状。
 
 ```csharp
 void Main()
@@ -102,9 +102,9 @@ void Main()
 ![image](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/21de8c54-2088-4c08-a8ff-d4085880223f)
 
 
-### Example 4: Using a Specific Font
+### 示例4：使用特定字体
 
-Demonstrates how to utilize a specific font for the word cloud generation.
+演示如何为文字云生成使用特定字体。
 
 ```csharp
 void Main()
@@ -120,9 +120,9 @@ void Main()
 
 ![image](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/fa33e479-21f8-468e-b792-282990e51384)
 
-### Example 5: Generating SVG Output
+### 示例5：生成SVG输出
 
-Shows how to generate an SVG from a word cloud, useful for web applications where scalability is crucial.
+展示如何从文字云生成SVG，这对于需要可伸缩性的Web应用程序非常有用。
 
 ```csharp
 void Main()
@@ -141,9 +141,9 @@ void Main()
 
 ![svg](./assets/demo.svg)
 
-### Shared Word Frequency List
+### 共享词频列表
 
-All examples use the following word frequency list:
+所有示例使用以下词频列表：
 
 ```csharp
 static IEnumerable<WordScore> MakeDemoScore()
@@ -352,6 +352,6 @@ static IEnumerable<WordScore> MakeDemoScore()
 }
 ```
 
-## License
+## 许可证
 
-Sdcb.WordCloud is open-source software licensed under the MIT license.
+Sdcb.WordCloud是在MIT许可下的开源软件。
