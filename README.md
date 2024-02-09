@@ -1,4 +1,4 @@
-# Sdcb.WordCloud [![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
+![json-convert-back](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/3f234bb0-e346-4124-9201-ccd0fadc7c0a)# Sdcb.WordCloud [![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
 
 **Sdcb.WordCloud** is a versatile, cross-platform library for generating word cloud images, SVGs, or JSON data based on word frequencies. It harnesses the power of SkiaSharp for graphical operations, ensuring high performance and quality without relying on System.Drawing. This makes it an excellent choice for applications running across various platforms, including server-side scenarios where GUI libraries might not be available.
 
@@ -48,7 +48,8 @@ void Main()
 }
 ```
 
-![](./assets/text_orientations.png)
+![image](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/ba754b19-82f4-4a26-9246-5a33007fbbcd)
+
 
 ### Example 2: Converting Word Cloud to JSON and Back
 
@@ -65,15 +66,17 @@ void Main()
 			SKColors.White)
 	});
 	string json = wc.ToJson();
-	
+	Console.WriteLine(json);
+
+	// can convert back from generated json
 	WordCloud wc2 = WordCloud.FromJson(json);
-	new Svg(wc2.ToSvg(), wc.Width, wc.Height).Dump();
+	File.WriteAllText($"json-convert-back.svg", wc2.ToSvg());
 }
 ```
 
 **Note**: This example illustrates how a word cloud's data can be stored in and reconstructed from JSON, enabling easy sharing and modification.
 
-![](./assets/wordcloud_json.png)
+![image](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/8d7a7c5d-680c-49c7-ba4d-83c11436269e)
 
 ### Example 3: Applying a Mask
 
@@ -89,12 +92,13 @@ void Main()
 			new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
 			SKColors.White)
 	});
-	byte[] webpBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Webp, 70).AsSpan().ToArray();
-	Util.Image(webpBytes, Util.ScaleMode.Unscaled).Dump();
+	byte[] pngBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Png, 100).AsSpan().ToArray();
+	File.WriteAllBytes($"mask.png", pngBytes);
 }
 ```
 
-![](./assets/wordcloud_mask.png)
+![image](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/21de8c54-2088-4c08-a8ff-d4085880223f)
+
 
 ### Example 4: Using a Specific Font
 
@@ -107,12 +111,12 @@ void Main()
 	{
 		FontManager = new FontManager([SKTypeface.FromFamilyName("Consolas")])
 	});
-	byte[] webpBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Webp, 70).AsSpan().ToArray();
-	Util.Image(webpBytes, Util.ScaleMode.Unscaled).Dump();
+	byte[] pngBytes = wc.ToSKBitmap().Encode(SKEncodedImageFormat.Png, 100).AsSpan().ToArray();
+	File.WriteAllBytes($"specified-font.png", pngBytes);
 }
 ```
 
-![](./assets/wordcloud_font.png)
+![image](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/fa33e479-21f8-468e-b792-282990e51384)
 
 ### Example 5: Generating SVG Output
 
@@ -132,7 +136,7 @@ void Main()
 }
 ```
 
-![](./assets/wordcloud_svg.png)
+![svg](./assets/demo.svg)
 
 ### Shared Word Frequency List
 
