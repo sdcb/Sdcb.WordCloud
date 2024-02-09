@@ -49,11 +49,6 @@ public record WordCloudOptions(int Width, int Height, IEnumerable<WordScore> Wor
     public FontSizeAccessor FontSizeAccessor { get; set; } = ctx => (float)Math.Min(ctx.CurrentFontSize, 100 * Math.Log10(ctx.Frequency + 100));
 
     /// <summary>
-    /// An optional background image for the word cloud.
-    /// </summary>
-    public SKBitmap? Background { get; set; }
-
-    /// <summary>
     /// Optional mask options to apply during the rendering of the word cloud.
     /// </summary>
     public MaskOptions? Mask { get; set; }

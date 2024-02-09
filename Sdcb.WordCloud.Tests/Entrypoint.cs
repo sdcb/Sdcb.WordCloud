@@ -19,22 +19,27 @@ public class Entrypoint
         Console.WriteLine($"2: demo with mask");
         string id = Console.ReadLine()!;
 
+        Func<MaskOptions> maskAccessor = () => MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(
+            new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
+            SKColors.White);
+
         WordCloudOptions options = id switch
         {
             "1" => new(800, 600, MakeDemoFrequency()) 
             { 
                 Random = new Random(1),
-                TextOrientation = TextOrientations.PreferVertical,
+                TextOrientation = TextOrientations.PreferHorizontal,
             }, 
             "2" => new(900, 900, MakeDemoFrequency()) 
-            { 
+            {
                 Random = new Random(1),
-                Mask = MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(@"C:\Users\ZhouJie\source\repos\Sdcb.WordCloud\Sdcb.WordClouds.Tests\alice_mask.png"), SKColors.White)
+                Mask = maskAccessor(),
+                MinFontSize = 1,
             },
             _ => throw new NotImplementedException(),
         };
 
-        for (int i = 0; i < 1; ++i)
+        for (int i = 0; i < 5; ++i)
         {
             Stopwatch sw = Stopwatch.StartNew();
             WordCloud cloud = WordCloud.Create(options);

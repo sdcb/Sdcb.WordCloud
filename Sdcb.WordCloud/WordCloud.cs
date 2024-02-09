@@ -11,26 +11,27 @@ namespace Sdcb.WordClouds;
 /// <summary>
 /// Represents a word cloud graphic that can be rendered to a bitmap or converted to different graphic formats like SVG.
 /// </summary>
-public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? Background = null)
+public record WordCloud(int Width, int Height, TextLine[] TextLines)
 {
     /// <summary>
     /// Renders the word cloud to an SKBitmap.
     /// </summary>
+    /// <param name="background">The background image to be drawn behind the word cloud.</param>
     /// <param name="addBox">If set to true, adds a box around each text line for visual debugging.</param>
     /// <returns>A new SKBitmap instance containing the rendered word cloud.</returns>
-    /// <exception cref="ArgumentException">Thrown when the background image does not match the size of the canvas.</exception>
-    public SKBitmap ToSKBitmap(bool addBox = false)
+    /// <exception cref="ArgumentException">Thrown when the background image size does not match the size of the canvas.</exception>
+    public SKBitmap ToSKBitmap(SKBitmap? background = null, bool addBox = false)
     {
         SKBitmap result = new(Width, Height);
         using SKCanvas canvas = new(result);
 
-        if (Background is not null)
+        if (background is not null)
         {
-            if (Background.Width < Width || Background.Height < Height)
+            if (background.Width < Width || background.Height < Height)
             {
                 throw new ArgumentException("Background image size does not match the canvas size.");
             }
-            canvas.DrawBitmap(Background, SKRect.Create(Width, Height));
+            canvas.DrawBitmap(background, SKRect.Create(Width, Height));
         }
 
         using SKPaint textPainter = new() { IsAntialias = true, };
@@ -166,7 +167,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines, SKBitmap? B
             .Where(item => item is not null)
             .ToArray();
 
-        return new WordCloud(options.Width, options.Height, items, options.Background);
+        return new WordCloud(options.Width, options.Height, items);
     }
 
     private static TextLine? CreateTextItem(WordCloudOptions options, Traverser traverser, IntegralMap integralMap, float fontSize, bool[,] cache, SKPaint fontPaintCache, WordScore word)
