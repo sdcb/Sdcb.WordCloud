@@ -132,7 +132,8 @@ void Main()
 			new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
 			SKColors.White)
 	});
-	new Svg(wc.ToSvg(), wc.Width, wc.Height).Dump();
+	File.WriteAllText($"json-convert-back.svg", wc.ToSvg());
+	//new Svg(wc.ToSvg(), wc.Width, wc.Height).Dump();
 }
 ```
 
