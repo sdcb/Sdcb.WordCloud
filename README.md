@@ -1,4 +1,4 @@
-![json-convert-back](https://github.com/sdcb/Sdcb.WordCloud/assets/1317141/3f234bb0-e346-4124-9201-ccd0fadc7c0a)# Sdcb.WordCloud [![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
+# Sdcb.WordCloud [![NuGet](https://img.shields.io/nuget/v/Sdcb.WordCloud.svg)](https://nuget.org/packages/Sdcb.WordCloud)
 
 **Sdcb.WordCloud** is a versatile, cross-platform library for generating word cloud images, SVGs, or JSON data based on word frequencies. It harnesses the power of SkiaSharp for graphical operations, ensuring high performance and quality without relying on System.Drawing. This makes it an excellent choice for applications running across various platforms, including server-side scenarios where GUI libraries might not be available.
 
