@@ -35,7 +35,7 @@ void Build(ProjectVersion p)
 	string projPosition = Path.Combine(@"..\" +  SearchProjectPathInSolutionFile(File.ReadAllText(@"..\Sdcb.WordCloud.sln"), p.name));
 
 	//DotNetRun($@"build ..\src\{project}\{project}.csproj -c Release");
-	DotNetRun($@"pack {projPosition} -p:Version={p.version} -c Release -o .\nupkgs");
+	DotNetRun($@"pack {projPosition} -p:Version={p.version} -c Release -o .\nupkgs --include-symbols --include-source");
 	Refresh();
 }
 
