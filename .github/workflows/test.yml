@@ -15,7 +15,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v3
+      - name: Extra step for Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          ldd /home/runner/work/Sdcb.WordCloud/Sdcb.WordCloud/Sdcb.WordCloud.Tests/bin/Release/net8.0/libSkiaSharp.so
+      - uses: actions/checkout@v4
       - name: Build code
         run: dotnet build -c Release
       - name: Test
