@@ -75,7 +75,7 @@ public class FillCacheTest
         SKRectI rect = SKRectI.Create(1, 1, height, width);
 
         // act
-        WordCloud.FillCache(bmp, HorizontalOrVertical.Horizontal, cache, rect);
+        WordCloud.FillCache(bmp, HorizontalOrVertical.Vertical, cache, rect);
 
         // assert
         _console.WriteLine("SKBitmap:");

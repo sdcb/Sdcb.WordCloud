@@ -1,5 +1,4 @@
-﻿using Sdcb.WordClouds;
-using SkiaSharp;
+﻿using SkiaSharp;
 using System.Diagnostics;
 
 namespace Sdcb.WordClouds.Tests;
