@@ -1,55 +1,70 @@
 ﻿using SkiaSharp;
 using System.Diagnostics;
+using Xunit.Abstractions;
 
 namespace Sdcb.WordClouds.Tests;
 
-public class Entrypoint
+public class Entrypoint(ITestOutputHelper console)
 {
-    static readonly string _integratedTestOutput = "IntegratedTestOutput";
+    private readonly string _integratedTestOutput = "IntegratedTestOutput";
 
-    static void Main()
+    [Fact]
+    public void PreferHorizontalDemo()
     {
         if (!Directory.Exists(_integratedTestOutput))
         {
             Directory.CreateDirectory(_integratedTestOutput);
         }
-        Console.WriteLine($"Please select: ");
-        Console.WriteLine($"1: most simple demo");
-        Console.WriteLine($"2: demo with mask");
-        string id = Console.ReadLine()!;
 
         Func<MaskOptions> maskAccessor = () => MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(
             new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
             SKColors.White);
 
-        WordCloudOptions options = id switch
+        WordCloudOptions options = new(800, 600, MakeDemoFrequency())
         {
-            "1" => new(800, 600, MakeDemoFrequency()) 
-            { 
-                Random = new Random(1),
-                TextOrientation = TextOrientations.PreferHorizontal,
-            }, 
-            "2" => new(900, 900, MakeDemoFrequency()) 
-            {
-                Random = new Random(1),
-                Mask = maskAccessor(),
-                MinFontSize = 1,
-            },
-            _ => throw new NotImplementedException(),
+            Random = new Random(1),
+            TextOrientation = TextOrientations.PreferHorizontal,
         };
 
-        for (int i = 0; i < 5; ++i)
+        Stopwatch sw = Stopwatch.StartNew();
+        WordCloud cloud = WordCloud.Create(options);
+        console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
+        using SKBitmap bmp = cloud.ToSKBitmap(addBox: false);
+        console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
+        using FileStream dest = File.OpenWrite(Path.Combine(_integratedTestOutput, $"{nameof(PreferHorizontalDemo)}.png"));
+        bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(dest);
+        File.WriteAllText(Path.Combine(_integratedTestOutput, $"{nameof(PreferHorizontalDemo)}.svg"), cloud.ToSvg());
+        File.WriteAllText(Path.Combine(_integratedTestOutput, $"{nameof(PreferHorizontalDemo)}.json"), cloud.ToJson());
+    }
+
+    [Fact]
+    public void MaskAccessorDemo()
+    {
+        if (!Directory.Exists(_integratedTestOutput))
         {
-            Stopwatch sw = Stopwatch.StartNew();
-            WordCloud cloud = WordCloud.Create(options);
-            Console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
-            using SKBitmap bmp = cloud.ToSKBitmap(addBox: false);
-            Console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
-            using FileStream dest = File.OpenWrite(Path.Combine(_integratedTestOutput, "test.png"));
-            bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(dest);
-            File.WriteAllText(Path.Combine(_integratedTestOutput, "test.svg"), cloud.ToSvg());
-            File.WriteAllText(Path.Combine(_integratedTestOutput, "test.json"), cloud.ToJson());
+            Directory.CreateDirectory(_integratedTestOutput);
         }
+
+        Func<MaskOptions> maskAccessor = () => MaskOptions.CreateWithForegroundColor(SKBitmap.Decode(
+            new HttpClient().GetByteArrayAsync("https://io.starworks.cc:88/cv-public/2024/alice_mask.png").GetAwaiter().GetResult()),
+            SKColors.White);
+
+        WordCloudOptions options = new(900, 900, MakeDemoFrequency())
+        {
+            Random = new Random(1),
+            Mask = maskAccessor(),
+            MinFontSize = 1,
+        };
+
+        Stopwatch sw = Stopwatch.StartNew();
+        WordCloud cloud = WordCloud.Create(options);
+        console.WriteLine($"生成耗时：{sw.ElapsedMilliseconds}ms");
+        using SKBitmap bmp = cloud.ToSKBitmap(addBox: false);
+        console.WriteLine($"总耗时：{sw.ElapsedMilliseconds}ms");
+        using FileStream dest = File.OpenWrite(Path.Combine(_integratedTestOutput, $"{nameof(MaskAccessorDemo)}.png"));
+        bmp.Encode(SKEncodedImageFormat.Png, 100).SaveTo(dest);
+        File.WriteAllText(Path.Combine(_integratedTestOutput, $"{nameof(MaskAccessorDemo)}.svg"), cloud.ToSvg());
+        File.WriteAllText(Path.Combine(_integratedTestOutput, $"{nameof(MaskAccessorDemo)}.json"), cloud.ToJson());
     }
 
     static IEnumerable<WordScore> MakeDemoFrequency()
