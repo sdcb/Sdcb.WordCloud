@@ -1,0 +1,19 @@
+name: tests
+on:
+  push: 
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '**.linq'
+  workflow_dispatch:
+
+jobs:
+  unit-test-all:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build code
+        run: dotnet build -c Release
+      - name: Test
+        run: dotnet test -c Release --no-build --verbosity normal
