@@ -43,7 +43,7 @@ public record PositionedTextGroup(PositionedText[] Texts)
     /// <returns>A <see cref="SKBitmap"/> representing the rendered text segments.</returns>
     public SKBitmap CreateTextLayout(SKPaint paint)
     {
-        SKBitmap temp = new(SizeI.Width, SizeI.Height);
+        SKBitmap temp = new(SizeI.Width, SizeI.Height, SKColorType.Bgra8888, SKAlphaType.Opaque);
         using SKCanvas tempCanvas = new(temp);
         foreach (PositionedText segment in Texts)
         {
