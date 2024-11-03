@@ -68,11 +68,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines)
     /// <returns>A JSON string representing the word cloud.</returns>
     public string ToJson()
     {
-        return JsonSerializer.Serialize(this, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        });
+        return JsonSerializer.Serialize(this, Utils.DefaultJsonOptions);
     }
 
     /// <summary>
@@ -82,10 +78,7 @@ public record WordCloud(int Width, int Height, TextLine[] TextLines)
     /// <returns>A WordCloud object represented by the JSON string.</returns>
     public static WordCloud FromJson(string json)
     {
-        return JsonSerializer.Deserialize<WordCloud>(json, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        })!;
+        return JsonSerializer.Deserialize<WordCloud>(json, Utils.DefaultJsonOptions)!;
     }
 
     /// <summary>
