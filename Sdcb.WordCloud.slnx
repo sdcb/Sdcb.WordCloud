@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/assets/">
+    <File Path="assets/demo.png" />
+    <File Path="assets/icon.png" />
+  </Folder>
+  <Folder Name="/scripts/">
+    <File Path="scripts/00-common.linq" />
+    <File Path="scripts/01-build-packages.linq" />
+    <File Path="scripts/02-publish-proget-nuget.linq" />
+  </Folder>
+  <Folder Name="/解决方案项/">
+    <File Path="README_CN.md" />
+  </Folder>
+  <Project Path="Sdcb.WordCloud.Tests/Sdcb.WordCloud.Tests.csproj" />
+  <Project Path="Sdcb.WordCloud/Sdcb.WordCloud.csproj" />
+</Solution>
