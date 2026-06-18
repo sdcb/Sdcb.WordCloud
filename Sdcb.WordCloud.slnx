@@ -3,6 +3,9 @@
     <File Path="assets/demo.png" />
     <File Path="assets/icon.png" />
   </Folder>
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/test.yml" />
+  </Folder>
   <Folder Name="/scripts/">
     <File Path="scripts/00-common.linq" />
     <File Path="scripts/01-build-packages.linq" />
